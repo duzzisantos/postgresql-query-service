@@ -1,8 +1,6 @@
 class SelectQueries:
-    def __init__(self, has_complete_paramaters):
-        self.has_complete_parameters = has_complete_paramaters
-
-       ## Single select statements
+        
+       ## General select statements
         def selectAll(table: str):
             return f"SELECT * FROM {table};"
         
@@ -11,6 +9,9 @@ class SelectQueries:
         
         def selectAllWithLimitAndOffset(table: str, limit: int, offset: int):
             return f"SELECT * FROM {table} LIMIT {limit} OFFSET {offset};"
+        
+        def selectAllWithLimit(table: str, limit: int):
+            return f"SELECT * FROM {table} LIMIT {limit};"
         
         def selectAllWhere(table: str, conditions: list[str]):
             query_conditions = ''
@@ -50,17 +51,35 @@ class SelectQueries:
                   
         def selectAllWhereIn(table: str, column: str, search_parameters: list[str]):
             return f"SELECT * FROM {table} WHERE {column} IN ({", ".join(search_parameters)});"
+        
+        def selectAllWhereAndCount(table: str, primary_column: str, secondary_column: str, search_parameter: str | int):
+            return f"SELECT COUNT({primary_column}) * FROM {table} WHERE {secondary_column} = {search_parameter} ORDER BY {secondary_column};"
+        
+        def selectAllWhereAndAverage(table: str, column: str):
+            return f"SELECT AVG({column})::NUMERIC(10,2) FROM {table};"
+        
+        def selectAllGroupBy(table: str, primary_column: str, secondary_column: str):
+            return f"SELECT COUNT({primary_column}), {secondary_column} FROM {table} GROUP BY {secondary_column}"
             
         
-        ##Multiple select statements
-        def selectMultipleColumns(table: str, columns: list[str]):
+            
+        ## Specific column selectors
+
+        def selectByColumns(table: str, columns: list[str]):
             comma_separated_columns = ", ".join(columns)
 
             return f"SELECT {comma_separated_columns} FROM {table};"
         
-
-            
+        def selectByColumnsAndOrderBy(table: str, columns: list[str], order: str):
+            return f"SELECT {", ".join(columns)} FROM {table} ORDER BY {order};"
         
+        def selectByColumnsAndLimit(table: str, columns: list[str], limit: int):
+            return f"SELECT {", ".join(columns)} FROM {table} LIMIT {limit};"
+        
+      
+
+
+
         
 
 
