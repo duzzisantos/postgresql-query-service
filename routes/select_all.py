@@ -14,8 +14,8 @@ http_response = HTTPException()
 
 @app.post("/GetAll/{table}", status_code=status.HTTP_200_OK)
 def getAll(table: str):
-
     errorLogger(table)
+
     operations = SelectAll()
     cursor.execute(operations)
     return cursor.fetchall()
@@ -30,7 +30,7 @@ def getAllOrderBy(table: str, order: str):
     cursor.execute(operations)
     return cursor.fetchall()
     
-@app.post("/GetAllWithLimitAndOffset/{table}/{limit}/{offset}", status_code=status.HTTP_201_CREATED)
+@app.post("/GetAllWithLimitAndOffset/{table}/{limit}/{offset}", status_code=status.HTTP_200_OK)
 def getAllWithLimitAndOffset(table: str, limit: int, offset: int):
     errorLogger(table)
     errorLogger(limit)
@@ -41,7 +41,7 @@ def getAllWithLimitAndOffset(table: str, limit: int, offset: int):
     return cursor.fetchall()
     
 
-@app.post("/GetAllWithLimit/{table}/{limit}", status_code=status.HTTP_201_CREATED)
+@app.post("/GetAllWithLimit/{table}/{limit}", status_code=status.HTTP_200_OK)
 def getAllWithLimit(table: str, limit: int):
     errorLogger(table)
     errorLogger(limit)
@@ -51,4 +51,22 @@ def getAllWithLimit(table: str, limit: int):
     return cursor.fetchall()
     
    
-    
+@app.post("/GetAllWhere/{table}/{conditions}", status_code=status.HTTP_200_OK)
+def getAllWhere(table, conditions):
+    errorLogger(table)
+    errorLogger(conditions)
+
+    operations = SelectAll()
+    cursor.execute(operations)
+    return cursor.fetchall()
+
+@app.post("/GetAllWhereAndOrderBy/{table}/{conditions}/{order}", status_code=status.HTTP_200_OK)
+def getAllWhereAndOrderBy(table, conditions, order):
+    errorLogger(table)
+    errorLogger(conditions)
+    errorLogger(order)
+
+    operations = SelectAll()
+    cursor.execute(operations)
+    return cursor.fetchall()
+
