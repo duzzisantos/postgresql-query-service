@@ -23,7 +23,7 @@ class SelectQueries:
                 query_conditions = " AND ".join(conditions)
                 return f"SELECT * FROM {table} WHERE {query_conditions};"
         
-        def selectAllWhereAndOrderBy(table: str, conditions: list[str], order: int):
+        def selectAllWhereAndOrderBy(table: str, conditions: list[str], order: str):
             query_conditions = ''
 
             if(len(conditions) == 1):
