@@ -1,80 +1,82 @@
 class SelectQueries:
         
        ## General select statements
-        def selectAll(table: str):
-            return f"SELECT * FROM {table};"
+        def selectAll(table: str, cursor: function):
+            return cursor.execute("SELECT * FROM %s", (table))
         
-        def selectAllOrderBy(table: str, order: str):
-            return f"SELECT * FROM {table} ORDER BY {order};"
+        def selectAllOrderBy(table: str, order: str, cursor: function):
+            return cursor.execute("SELECT * FROM %s ORDER BY %s", (table, order))
         
-        def selectAllWithLimitAndOffset(table: str, limit: int, offset: int):
-            return f"SELECT * FROM {table} LIMIT {limit} OFFSET {offset};"
+        def selectAllWithLimitAndOffset(table: str, limit: int, offset: int, cursor: function):
+            return cursor.execute("SELECT * FROM %s LIMIT %s OFFSET %s", (table, limit, offset))
         
-        def selectAllWithLimit(table: str, limit: int):
-            return f"SELECT * FROM {table} LIMIT {limit};"
+        def selectAllWithLimit(table: str, limit: int, cursor: function):
+            return cursor.execute("SELECT * FROM %s LIMIT %s;", (table, limit))
         
-        def selectAllWhere(table: str, conditions: list[str]):
+        def selectAllWhere(table: str, conditions: list[str], cursor: function):
             query_conditions = ''
 
             if(len(conditions) == 1):
                 query_conditions = " ".join(conditions)
-                return f"SELECT * FROM {table} WHERE {query_conditions};"
+                return cursor.execute("SELECT * FROM %s WHERE %s", (table, query_conditions))
             elif(len(conditions) > 1):
                 query_conditions = " AND ".join(conditions)
-                return f"SELECT * FROM {table} WHERE {query_conditions};"
+                return "SELECT * FROM %s WHERE %s"
         
-        def selectAllWhereAndOrderBy(table: str, conditions: list[str], order: str):
+        def selectAllWhereAndOrderBy(table: str, conditions: list[str], order: str, cursor: function):
             query_conditions = ''
 
             if(len(conditions) == 1):
                 query_conditions = " ".join(conditions)
-                return f"SELECT * FROM {table} WHERE {query_conditions} ORDER BY {order};"
+                return cursor.execute("SELECT * FROM %s WHERE %s ORDER BY %s", (table, query_conditions, order))
             elif(len(conditions) > 1):
                 query_conditions = " AND ".join(conditions)
-                return f"SELECT * FROM {table} WHERE {query_conditions} ORDER BY {order};"
+                return cursor.execute("SELECT * FROM %s WHERE %s ORDER BY %s", (table, query_conditions, order))
             
-        def selectAllBetween(table: str, range: list[str | int]):
+        def selectAllBetween(table: str, range: list[str | int], cursor: function):
             if(len(range) == 2):
-                return f"SELECT * FROM {table} BETWEEN {range[0]} AND {range[1]};"
+                return cursor.execute("SELECT * FROM %s BETWEEN %s AND %s", (table, range[0], range[1]))
             else:
                 return None
         
-        def selectAllWhereMatches(table: str, columns: list[str], wild_cards: list[str]):
+        def selectAllWhereMatches(table: str, columns: list[str], wild_cards: list[str], cursor: function):
             if(len(columns).__eq__(1) and len(wild_cards).__eq__(1)):
-                return f"SELECT * FROM {table} WHERE {columns[0]} LIKE {wild_cards[0]};"
+                return cursor.execute("SELECT * FROM %s WHERE %s LIKE %s", (table, columns[0], wild_cards[0]))
             elif(len(columns).__ge__(2) and len(wild_cards).__ge__(2)):
                 for column in columns:
                  for wild_card in wild_cards:
                      
                      joint_query_conditions = f" {column} LIKE {wild_card}"
-                return f"SELECT * FROM {table} WHERE {" AND ".join(joint_query_conditions)};"      
+                return f"SELECT * FROM %s WHERE {" AND ".join(joint_query_conditions)};"      
                   
-        def selectAllWhereIn(table: str, column: str, search_parameters: list[str]):
-            return f"SELECT * FROM {table} WHERE {column} IN ({", ".join(search_parameters)});"
+        def selectAllWhereIn(table: str, column: str, search_parameters: list[str], cursor: function):
+            joined_str = ", ".join(search_parameters)
+            return cursor.execute("SELECT * FROM %s WHERE %s IN %s", (table, column, joined_str))
         
-        def selectAllWhereAndCount(table: str, primary_column: str, secondary_column: str, search_parameter: str | int):
-            return f"SELECT COUNT({primary_column}) * FROM {table} WHERE {secondary_column} = {search_parameter} ORDER BY {secondary_column};"
+        def selectAllWhereAndCount(table: str, primary_column: str, secondary_column: str, search_parameter: str | int, cursor: function):
+            return cursor.execute("SELECT COUNT(%s) * FROM %s WHERE %s = %s ORDER BY %s", (table, primary_column, secondary_column, search_parameter))
         
-        def selectAllWhereAndAverage(table: str, column: str):
-            return f"SELECT AVG({column})::NUMERIC(10,2) FROM {table};"
+        def selectAllWhereAndAverage(table: str, column: str, cursor):
+            return cursor.execute("SELECT AVG(%s)::NUMERIC(10,2) FROM %s", (table, column))
         
-        def selectAllGroupBy(table: str, primary_column: str, secondary_column: str):
-            return f"SELECT COUNT({primary_column}), {secondary_column} FROM {table} GROUP BY {secondary_column}"
+        def selectAllGroupBy(table: str, primary_column: str, secondary_column: str, cursor: function):
+            return cursor.execute("SELECT COUNT(%s), %s FROM %s GROUP BY %s", (primary_column, secondary_column, table))
             
         
             
         ## Specific column selectors
 
-        def selectByColumns(table: str, columns: list[str]):
+        def selectByColumns(table: str, columns: list[str], cursor: function):
             comma_separated_columns = ", ".join(columns)
-
-            return f"SELECT {comma_separated_columns} FROM {table};"
+            return cursor.execute("SELECT %s FROM %s", (comma_separated_columns, table))
         
-        def selectByColumnsAndOrderBy(table: str, columns: list[str], order: str):
-            return f"SELECT {", ".join(columns)} FROM {table} ORDER BY {order};"
+        def selectByColumnsAndOrderBy(table: str, columns: list[str], order: str, cursor: function):
+            multi_cols = ", ".join(columns)
+            return cursor.execute("SELECT % FROM %s ORDER BY %s", (multi_cols, table, order))
         
-        def selectByColumnsAndLimit(table: str, columns: list[str], limit: int):
-            return f"SELECT {", ".join(columns)} FROM {table} LIMIT {limit};"
+        def selectByColumnsAndLimit(table: str, columns: list[str], limit: int, cursor: function):
+            multi_cols = ", ".join(columns)
+            return cursor.execute("SELECT %s FROM %s LIMIT %s", (multi_cols, table, limit))
         
       
 
