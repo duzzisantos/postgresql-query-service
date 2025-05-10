@@ -16,4 +16,4 @@ def is_potential_sqli(param: str) -> bool:
 def validate_params_against_sqli(params: dict) -> dict:
     for key, value in params.items():
         if isinstance(value, str) and is_potential_sqli(value):
-            return {"warning": f"Validation failed! Attempted SQLi attack using parameter: {key}.", "rejected_value": value}
+            return {"warning": f"Validation failed! Unsupported content. Attempted SQLi attack using parameter: {key}.", "rejected_value": value}
