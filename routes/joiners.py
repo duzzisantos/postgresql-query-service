@@ -1,0 +1,35 @@
+from fastapi import FastAPI, HTTPException, status
+from middleware.errorlogger import errorLogger
+from middleware.success_logger import successLogger
+from query_builders.joiners.basic_joins import BasicJoin
+from models.request_model import RequestModel
+import psycopg2 # type: ignore
+
+connection = psycopg2.connect(dbname="akuko-uwa", user="postgres", password="dummy", host="localhost", port="5432")
+cursor = connection.cursor()
+
+app = FastAPI()
+http_response = HTTPException
+
+
+
+@app.post("/GetTableJoiner", status_code=status.HTTP_200_OK)
+async def getLeftJoin(request_body: RequestModel):
+    
+    query = BasicJoin(request_body.columns, request_body.join_type, 
+                      request_body.primary_table, request_body.secondary_table,
+                        request_body.common_key, cursor)
+
+    if(request_body.join_type.__eq__('left_join')):
+        return query.leftJoin()
+    elif(request_body.join_type.__eq__('right_join')):
+        return query.rightJoin()
+    elif(request_body.join_type.__eq__('inner_join')):
+        return query.innerJoin()
+    else:
+        return query.fullJoin()
+    
+
+
+
+
