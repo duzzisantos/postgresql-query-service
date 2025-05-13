@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, status
 from middleware.errorlogger import errorLogger
 from middleware.success_logger import successLogger
 from services.queries.selectors.select_all import SelectAll
+from models.request_model import RequestModel
 import psycopg2 # type: ignore
 
 connection = psycopg2.connect(dbname="akuko-uwa", user="postgres", password="dummy", host="localhost", port="5432")
@@ -14,100 +15,101 @@ operations = SelectAll()
 ## TODO: Improve error logger to avoid repetition
 ## TODO: Add selected DB Engine checker middleware one-level above this on API gateway
 
-@app.post("/GetAll/{table}", status_code=status.HTTP_200_OK)
-def getAll(table: str):
+@app.post("/GetAll", status_code=status.HTTP_200_OK)
+async def getAll(table: str):
     errorLogger(table)
     successLogger(cursor=cursor, operations=operations.getAll(table))
 
-@app.post("/GetAllOrderBy/{table}/{order}", status_code=status.HTTP_200_OK)
-def getAllOrderBy(table: str, order: str):
-    errorLogger(table)
-    errorLogger(order)
+@app.post("/GetAllOrderBy", status_code=status.HTTP_200_OK)
+async def getAllOrderBy(model: RequestModel):
+    errorLogger(model.table)
+    errorLogger(model.order)
 
-    successLogger(cursor=cursor, operations=operations.getAllOrderBy(table, order))
+    return operations.getAllOrderBy(model.table, model.order, cursor)
     
-@app.post("/GetAllWithLimitAndOffset/{table}/{limit}/{offset}", status_code=status.HTTP_200_OK)
-def getAllWithLimitAndOffset(table: str, limit: int, offset: int):
-    errorLogger(table)
-    errorLogger(limit)
-    errorLogger(offset)
+@app.post("/GetAllWithLimitAndOffset", status_code=status.HTTP_200_OK)
+async def getAllWithLimitAndOffset(model: RequestModel):
+    errorLogger(model.table)
+    errorLogger(model.limit)
+    errorLogger(model.offset)
 
-    successLogger(cursor=cursor, operations=operations.getAllWithLimitAndOffset(table, limit, offset))
+    return operations.getAllWithLimitAndOffset(model.table, model.limit, model.offset)
     
 
-@app.post("/GetAllWithLimit/{table}/{limit}", status_code=status.HTTP_200_OK)
-def getAllWithLimit(table: str, limit: int):
-    errorLogger(table)
-    errorLogger(limit)
+@app.post("/GetAllWithLimit", status_code=status.HTTP_200_OK)
+async def getAllWithLimit(model: RequestModel):
+    errorLogger(model.table)
+    errorLogger(model.limit)
 
-    successLogger(cursor=cursor, operations=operations.getAllWithLimit(table, limit))
+    return operations.getAllWithLimit(model.table, model.limit, cursor)
     
    
-@app.post("/GetAllWhere/{table}/{conditions}", status_code=status.HTTP_200_OK)
-def getAllWhere(table, conditions):
-    errorLogger(table)
-    errorLogger(conditions)
+@app.post("/GetAllWhere", status_code=status.HTTP_200_OK)
+def getAllWhere(model: RequestModel):
+    errorLogger(model.table)
+    errorLogger(model.conditions)
 
-    successLogger(cursor=cursor, operations=operations.getAllWhere(table, conditions))
+    return operations.getAllWhere(model.table, model.conditions, cursor)
 
-@app.post("/GetAllWhereAndOrderBy/{table}/{conditions}/{order}", status_code=status.HTTP_200_OK)
-def getAllWhereAndOrderBy(table, conditions, order):
-    errorLogger(table)
-    errorLogger(conditions)
-    errorLogger(order)
+@app.post("/GetAllWhereAndOrderBy", status_code=status.HTTP_200_OK)
+async def getAllWhereAndOrderBy(model: RequestModel):
+    errorLogger(model.table)
+    errorLogger(model.conditions)
+    errorLogger(model.order)
 
-    successLogger(cursor=cursor, operations=operations.getAllWhereAndOrderBy(table, conditions, order))
+    return operations.getAllWhereAndOrderBy(model.table, model.conditions, model.order, cursor)
 
-@app.post("/GetAllBetween/{table}/{range}", status_code=status.HTTP_200_OK)
-def getAllBetween(table, range):
-    errorLogger(table)
-    errorLogger(range)
+@app.post("/GetAllBetween", status_code=status.HTTP_200_OK)
+async def getAllBetween(model: RequestModel):
+    errorLogger(model.table)
+    errorLogger(model.query_range)
 
-    successLogger(cursor, operations=operations.getAllBetween(table, range))
-
-
-@app.post("/GetAllWhereMatches/{table}/{columns}/{wild_cards}", status_code=status.HTTP_200_OK)
-def getAllWhereMatches(table, columns, wild_cards):
-    errorLogger(table)
-    errorLogger(columns)
-    errorLogger(wild_cards)
-
-    successLogger(cursor, operations=operations.getAllWhereMatches(table, columns, wild_cards))
+    return operations.getAllBetween(model.table, model.query_range, cursor)
 
 
-@app.post("/GetAllWhereIn/{table}/{column}/{search_parameters}", status_code=status.HTTP_200_OK)
-def getAllWhereIn(table, columns, search_parameters):
-    errorLogger(table)
-    errorLogger(columns)
-    errorLogger(search_parameters)
+@app.post("/GetAllWhereMatches", status_code=status.HTTP_200_OK)
+async def getAllWhereMatches(model: RequestModel):
+    errorLogger(model.table)
+    errorLogger(model.columns)
+    errorLogger(model.wild_cards)
 
-    successLogger(cursor, operations=operations.getAllWhereIn(table, columns, search_parameters))
-
-@app.post("/GetAllWhereAndCount/{table}/{primary_column}/{secondary_column}/{search_parameter}", status_code=status.HTTP_200_OK)
-def getAllWhereAndCount(table, primary_column, secondary_column, search_parameters):
-    errorLogger(table)
-    errorLogger(primary_column)
-    errorLogger(secondary_column)
-    errorLogger(search_parameters)
-
-    successLogger(cursor, operations=operations.getAllWhereAndcount(table, primary_column, secondary_column, search_parameters))
+    return operations.getAllWhereMatches(model.table, model.columns, model.wild_cards, cursor)
 
 
-@app.post("/GetAllWhereAverage/{table}/{column}", status_code=status.HTTP_200_OK)
-def getAllWhereAndCount(table, column):
-    errorLogger(table)
-    errorLogger(column)
+@app.post("/GetAllWhereIn", status_code=status.HTTP_200_OK)
+async def getAllWhereIn(model: RequestModel):
+    errorLogger(model.table)
+    errorLogger(model.columns)
+    errorLogger(model.search_parameters)
 
-    successLogger(cursor, operations=operations.getAllWhereAndAverage(table, column))
+    return operations.getAllWhereIn(model.table, model.columns, model.search_parameters, cursor)
+
+@app.post("/GetAllWhereAndCount", status_code=status.HTTP_200_OK)
+async def getAllWhereAndCount(request: RequestModel):
+    errorLogger(request.table)
+    errorLogger(request.primary_column)
+    errorLogger(request.secondary_column)
+    errorLogger(request.search_parameters)
+
+    return operations.getAllWhereAndcount(request.table, request.primary_column, 
+                                          request.secondary_column, request.search_parameters, cursor)
 
 
-@app.post("/GetAllGroupBy/{table}/{primary_column}/{secondary_column}", status_code=status.HTTP_200_OK)
-def getAllWhereAndCount(table, primary_column, secondary_column):
-    errorLogger(table)
-    errorLogger(primary_column)
-    errorLogger(secondary_column)
+@app.post("/GetAllWhereAverage", status_code=status.HTTP_200_OK)
+def getAllWhereAndCount(request: RequestModel):
+    errorLogger(request.table)
+    errorLogger(request.column)
+
+    return operations.getAllWhereAndAverage(request.table, request.column, cursor)
+
+
+@app.post("/GetAllGroupBy", status_code=status.HTTP_200_OK)
+def getAllWhereAndCount(request: RequestModel):
+    errorLogger(request.table)
+    errorLogger(request.primary_column)
+    errorLogger(request.secondary_column)
     
-    successLogger(cursor, operations=operations.getAllGroupBy(table, primary_column, secondary_column))
+    return operations.getAllGroupBy(request.table, request.primary_column, request.secondary_column, cursor)
 
 
 

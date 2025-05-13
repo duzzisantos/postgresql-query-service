@@ -5,7 +5,7 @@ from query_builders.joiners.basic_joins import BasicJoin
 from models.request_model import RequestModel
 import psycopg2 # type: ignore
 
-connection = psycopg2.connect(dbname="akuko-uwa", user="postgres", password="dummy", host="localhost", port="5432")
+connection = psycopg2.connect(dbname="akuko-uwa", user="postgres", password="dummy", host="localhost", port=" ")
 cursor = connection.cursor()
 
 app = FastAPI()
@@ -15,6 +15,11 @@ http_response = HTTPException
 
 @app.post("/GetTableJoiner", status_code=status.HTTP_200_OK)
 async def getLeftJoin(request_body: RequestModel):
+    errorLogger(request_body.columns)
+    errorLogger(request_body.join_type)
+    errorLogger(request_body.primary_table)
+    errorLogger(request_body.secondary_table)
+    errorLogger(request_body.common_key)
     
     query = BasicJoin(request_body.columns, request_body.join_type, 
                       request_body.primary_table, request_body.secondary_table,
