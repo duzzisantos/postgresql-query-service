@@ -1,3 +1,4 @@
 .history/
 /database-env
 /path
+.env
