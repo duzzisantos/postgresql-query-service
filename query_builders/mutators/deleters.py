@@ -1,5 +1,5 @@
 class Deleters:
-    def deleteById(table, primary_key: str, cursor: function):
+    def deleteById(table: str, primary_key: str, cursor: function):
         return cursor.execute("DELETE FROM %s WHERE %s", (table, primary_key))
     
     def deleteMany(table: str, cursor: function):

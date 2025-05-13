@@ -1,6 +1,6 @@
-from query_builders.selectors import select_queries
+from query_builders.selectors.select_queries import SelectQueries
 
-query = select_queries.SelectQueries()
+query = SelectQueries()
 class SelectAll():
     
     def getAll(table: str):
