@@ -79,7 +79,7 @@ async def updateMany(model: RequestModel):
     errorLogger(model.set_values)
     errorLogger(model.where_value)
 
-    return update.updateOne(model.table, model.primary_columns,
+    return update.updateMany(model.table, model.primary_columns,
                              model.secondary_column, model.set_values, model.where_value, cursor)
 
 
