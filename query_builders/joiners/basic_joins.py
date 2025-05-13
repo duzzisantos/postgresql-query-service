@@ -1,7 +1,7 @@
 from joiners.joiner_util import JoinerUtils
 
 class BasicJoin():
-    def __init__(self, columns: list[str], join_type: str, primary_table, secondary_table, common_key: str, cursor: function):
+    def __init__(self, columns: list[str], join_type: str, primary_table: str, secondary_table: str, common_key: str, cursor: function):
         self.columns = columns
         self.join_type = join_type
         self.primary_table = primary_table
