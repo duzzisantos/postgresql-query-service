@@ -3,17 +3,14 @@ from middleware.errorlogger import errorLogger
 from middleware.success_logger import successLogger
 from query_builders.joiners.basic_joins import BasicJoin
 from models.request_model import RequestModel
-import psycopg2 # type: ignore
+from connection_verify import client_configs
 
-connection = psycopg2.connect(dbname="akuko-uwa", user="postgres", password="dummy", host="localhost", port=" ")
-cursor = connection.cursor()
-
-app = FastAPI()
-http_response = HTTPException
+joiner_router = FastAPI()
+cursor = client_configs['cursor']
 
 
 
-@app.post("/GetTableJoiner", status_code=status.HTTP_200_OK)
+@joiner_router.post("/GetTableJoiner", status_code=status.HTTP_200_OK)
 async def getLeftJoin(request_body: RequestModel):
     errorLogger(request_body.columns)
     errorLogger(request_body.join_type)

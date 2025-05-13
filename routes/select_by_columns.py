@@ -1,19 +1,16 @@
 from fastapi import FastAPI, HTTPException, status
 from middleware.errorlogger import errorLogger
-from middleware.success_logger import successLogger
 from models.request_model import RequestModel
 from services.queries.selectors.select_by_column import SelectByColumn
-import psycopg2 # type: ignore
+from connection_verify import client_configs
 
-connection = psycopg2.connect(dbname="akuko-uwa", user="postgres", password="dummy", host="localhost", port="")
-cursor = connection.cursor()
-
-app = FastAPI()
+cursor = client_configs['cursor']
+select_by_column_router = FastAPI()
 http_response = HTTPException()
 operations = SelectByColumn()
 
 
-@app.post("/GetByColumns", status_code=status.HTTP_200_OK)
+@select_by_column_router.post("/GetByColumns", status_code=status.HTTP_200_OK)
 def getByColumns(request: RequestModel):
     errorLogger(request.table)
     errorLogger(request.columns)
@@ -21,7 +18,7 @@ def getByColumns(request: RequestModel):
     return operations.getByColumns(request.table, request.columns, cursor)
 
 
-@app.post("/GetByColumnsAndOrderBy", status_code=status.HTTP_200_OK)
+@select_by_column_router.post("/GetByColumnsAndOrderBy", status_code=status.HTTP_200_OK)
 def getByColumnsOrderBy(request: RequestModel):
     errorLogger(request.table)
     errorLogger(request.columns)
@@ -30,10 +27,10 @@ def getByColumnsOrderBy(request: RequestModel):
     return operations.getByColumnsAndOrderBy(request.table, request.columns, request.order, cursor)
 
 
-@app.post("/GetByColumnsAndLimit", status_code=status.HTTP_200_OK)
+@select_by_column_router.post("/GetByColumnsAndLimit", status_code=status.HTTP_200_OK)
 def getByColumnsAndLimit(request: RequestModel):
     errorLogger(request.table)
     errorLogger(request.columns)
     errorLogger(request.limit)
 
-    return operations.getByColumnsAndLimit(request.table, request.columns, request.limit)
+    return operations.getByColumnsAndLimit(request.table, request.columns, request.limit, cursor)
