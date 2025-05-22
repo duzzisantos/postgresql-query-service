@@ -1,7 +1,7 @@
 def validateParams(params: str | int | list[str]) -> dict:
     if (isinstance(params, str) and params.__eq__("")):
         return {"message": f"Validation failed! {params} returned an empty string", "result": False}
-    elif(isinstance(params, list[str]) and len(params).__eq__(0)):
+    elif(isinstance(params, list) and len(params).__eq__(0)):
          return {"message": f"Validation failed {params} returned an empty array of strings", "result": False}
     elif(isinstance(params, int) and not params):
          return {"message": f"Validation failed {params} returned no integer", "result": False}

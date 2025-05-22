@@ -1,16 +1,16 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from middleware.errorlogger import errorLogger
 from middleware.success_logger import successLogger
-from query_builders.joiners.basic_joins import BasicJoin
+from query_builders.join_builders.basic_joins import BasicJoin
 from models.request_model import RequestModel
-from connection_verify import client_configs
+from routes.connection_verify import client_configs
 
-joiner_router = FastAPI()
-cursor = client_configs['cursor']
+joiner_router = APIRouter()
+cursor = client_configs
 
 
 
-@joiner_router.post("/GetTableJoiner", status_code=status.HTTP_200_OK)
+@joiner_router.post("/GetTableJoiner")
 async def getLeftJoin(request_body: RequestModel):
     errorLogger(request_body.columns)
     errorLogger(request_body.join_type)

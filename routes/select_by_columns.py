@@ -1,12 +1,11 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import APIRouter, status
 from middleware.errorlogger import errorLogger
 from models.request_model import RequestModel
 from services.queries.selectors.select_by_column import SelectByColumn
-from connection_verify import client_configs
+from routes.connection_verify import client_configs
 
-cursor = client_configs['cursor']
-select_by_column_router = FastAPI()
-http_response = HTTPException()
+cursor = client_configs
+select_by_column_router = APIRouter()
 operations = SelectByColumn()
 
 

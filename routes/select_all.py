@@ -1,15 +1,14 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import APIRouter, status
 from middleware.errorlogger import errorLogger
 from middleware.success_logger import successLogger
 from services.queries.selectors.select_all import SelectAll
 from models.request_model import RequestModel
-from connection_verify import client_configs
+from routes.connection_verify import client_configs
 
 
-select_all_router = FastAPI()
-http_response = HTTPException()
+select_all_router = APIRouter()
 operations = SelectAll()
-cursor = client_configs['cursor']
+cursor = client_configs
 
 ## TODO: Improve error logger to avoid repetition
 ## TODO: Add selected DB Engine checker middleware one-level above this on API gateway

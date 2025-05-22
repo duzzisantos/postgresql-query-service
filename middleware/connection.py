@@ -1,17 +1,15 @@
-import psycopg2 # type: ignore
+import psycopg2
 
 
 class Connection():
-    def __init__(self, dbname: str, user: str, password: str, host: str, port: str):
+    def __init__(self, dbname: str, user: str, password: str):
         self.dbname = dbname
         self.user = user
         self.password = password
-        self.host = host
-        self.port = port
 
     def start_connection(self):
         
-        connection = psycopg2.connect(self.dbname, self.user, self.password, self.host, self.port)
+        connection = psycopg2.connect(database=self.dbname, user=self.user, password=self.password)
         cursor = connection.cursor()
         return cursor
 

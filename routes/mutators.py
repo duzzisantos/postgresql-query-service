@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status
+from fastapi import APIRouter, status
 from middleware.errorlogger import errorLogger
 from query_builders.mutators.creators import Creators
 from query_builders.mutators.deleters import Deleters
@@ -7,14 +7,14 @@ from models.request_model import RequestModel
 from routes.connection_verify import client_configs
 
 ## Refactor error logger
-mutator_router = FastAPI()
-cursor = client_configs['cursor']
+mutator_router = APIRouter()
+cursor = client_configs
 
 insert = Creators()
 remove = Deleters()
 update = Updaters()
 
-@mutator_router.post("/CreateOne", status_code=status.HTTP_200_OK)
+@mutator_router.post("/CreateOne")
 async def createOne(model: RequestModel):
     errorLogger(model.table)
     errorLogger(model.columns)
@@ -22,7 +22,7 @@ async def createOne(model: RequestModel):
 
     return insert.createOne(model.table, model.columns, model.values, cursor)
 
-@mutator_router.post("/CreateMany", status_code=status.HTTP_200_OK)
+@mutator_router.post("/CreateMany")
 async def createMany(model: RequestModel):
     errorLogger(model.table)
     errorLogger(model.columns)
@@ -30,14 +30,14 @@ async def createMany(model: RequestModel):
 
     return insert.createMany(model.table, model.columns, model.values, cursor)
 
-@mutator_router.post("/DeleteById", status_code=status.HTTP_200_OK)
+@mutator_router.post("/DeleteById")
 async def deleteById(model: RequestModel):
     errorLogger(model.table)
     errorLogger(model.primary_key)
 
     return remove.deleteById(model.table, model.primary_key, cursor)
 
-@mutator_router.post("/DeleteMany", status_code=status.HTTP_200_OK)
+@mutator_router.post("/DeleteMany")
 async def deleteMany(model: RequestModel):
     errorLogger(model.table)
     errorLogger(model.columns)
@@ -45,7 +45,7 @@ async def deleteMany(model: RequestModel):
 
     return remove.deleteMany(model.table, model.columns, model.parameters, cursor)
 
-@mutator_router.post("/DeleteByParameters", status_code=status.HTTP_200_OK)
+@mutator_router.post("/DeleteByParameters")
 async def deleteMany(model: RequestModel):
     errorLogger(model.table)
     errorLogger(model.columns)
@@ -53,7 +53,7 @@ async def deleteMany(model: RequestModel):
 
     return remove.deleteByParameters(model.table, model.columns, model.parameters, cursor)
 
-@mutator_router.post("/UpdateOne", status_code=status.HTTP_200_OK)
+@mutator_router.post("/UpdateOne")
 async def updateOne(model: RequestModel):
     errorLogger(model.table)
     errorLogger(model.primary_column)
