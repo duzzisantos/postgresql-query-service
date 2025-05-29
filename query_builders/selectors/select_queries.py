@@ -21,7 +21,7 @@ class SelectQueries:
                 return cursor.execute("SELECT * FROM %s WHERE %s", (table, query_conditions))
             elif(len(conditions) > 1):
                 query_conditions = " AND ".join(conditions)
-                return "SELECT * FROM %s WHERE %s"
+                return cursor.execute("SELECT * FROM %s WHERE %s", (table, query_conditions))
         
         def selectAllWhereAndOrderBy(table: str, conditions: list[str], order: str, cursor: dict):
             query_conditions = ''
@@ -47,7 +47,7 @@ class SelectQueries:
                  for wild_card in wild_cards:
                      
                      joint_query_conditions = f" {column} LIKE {wild_card}"
-                return f"SELECT * FROM %s WHERE {" AND ".join(joint_query_conditions)};"      
+                return cursor.execute(f"SELECT * FROM %s WHERE {" AND ".join(joint_query_conditions)}", (table, joint_query_conditions))   
                   
         def selectAllWhereIn(table: str, column: str, search_parameters: list[str], cursor: dict):
             joined_str = ", ".join(search_parameters)
