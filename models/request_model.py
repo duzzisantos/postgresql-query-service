@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date
+from psycopg2.extensions import  cursor as PsycopgCursor
 
 class RequestModel(BaseModel):
     table: Optional[str]

@@ -1,5 +1,5 @@
-import psycopg2
 
+import psycopg2
 
 class Connection():
     def __init__(self, dbname: str, user: str, password: str):
@@ -8,8 +8,9 @@ class Connection():
         self.password = password
 
     def start_connection(self):
-        
-        connection = psycopg2.connect(database=self.dbname, user=self.user, password=self.password)
-        cursor = connection.cursor()
-        return cursor
-
+        connection = psycopg2.connect(
+            database=self.dbname,
+            user=self.user,
+            password=self.password
+        )
+        return connection.cursor()
