@@ -1,0 +1,7 @@
+services:
+  web:
+    build: .
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - DATABASE_URL=${POSTGRES_URL}
