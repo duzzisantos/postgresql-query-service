@@ -1,6 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from middleware.errorlogger import errorLogger
 from middleware.connection_state import get_connection
+from redis_caching.manage_caching import manage_caching
+from redis_caching.redis_connection import redis_client
+
 import psycopg2
 
 connection_verify = APIRouter()
@@ -13,11 +16,14 @@ async def checkConnection():
             cur.execute("SELECT 1;")
             result = cur.fetchone()
 
-        return {
+            data = {
             "status": "OK",
             "message": "Connection established.",
             "test_query_result": result,
-        }
+           }
+            
+            return data
+
 
     except psycopg2.OperationalError as e:
         errorLogger(str(e))
@@ -25,3 +31,6 @@ async def checkConnection():
     except Exception as e:
         errorLogger(str(e))
         raise HTTPException(status_code=500, detail="Unexpected error occurred.")
+    
+
+

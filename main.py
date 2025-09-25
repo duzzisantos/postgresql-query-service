@@ -22,8 +22,6 @@ origins = [
     localhost, webhost
 ]
 
-
-
 @app.get("/")
 async def root():
     return {"message": "enter /docs to view API documentation"}
