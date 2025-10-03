@@ -22,11 +22,13 @@ class AllWhereOrderBy(AllWhere):
     order: str
 
 class AllBetween(GetAll):
-    pass
+    column: str
+    start: Optional[str | int | date]
+    end: Optional[str | int | date]
 
 class AllWhereMatches(GetAll):
-    columns: list[str]
-    wild_cards: list[str]
+    column: str
+    wild_card: str | int
 
 class AllWhereIn(GetAll):
     column: str
@@ -35,13 +37,14 @@ class AllWhereIn(GetAll):
 class AllWhereAndCount(GetAll):
     primary_column: str
     secondary_column: str
-    search_parameters: Optional[list[str] | str | int]
+    search_parameter: str | int
 
 class AllWhereAverageModel(AllWhereIn):
     pass
 
-class AllGroupByModel(AllWhereAndCount):
-    pass
+class AllGroupByModel(GetAll):
+    primary_column: str
+    secondary_column: str
 
 
 class ByColumns(GetAll):
@@ -63,21 +66,24 @@ class TableJoinModel(BaseModel):
 class CreateRow(BaseModel):
     columns: list[str]
     table: str
-    values: list[str] | list[tuple]
+    values: list[str | int]
 
 class CreateMany(CreateRow):
-    pass
+    columns: list[str]
+    table: str
+    values: list[list[str | int]]
 
 class DeleteRow(BaseModel):
     table: str
-    primary_key: Optional[str | int]
+    id: int | str
+    primary_column: str
 
 class DeleteMany(DeleteRow):
-    pass
+    table: str
+    primary_key: list[int | str]
 
-class DeleteByParams(DeleteRow):
-    parameters: list[str]
-    columns: list[str]
+class DeleteByParams(AllWhere):
+    conditions: list[str]
 
 class UpdateRow(BaseModel):
     table: str
@@ -86,7 +92,14 @@ class UpdateRow(BaseModel):
     secondary_column: str
     where_value: str
 
-class UpdateMany(UpdateRow):
-    primary_columns: list[str]
+class UpdateMany(BaseModel):
+    table: str
+    set_columns: list[str]
     set_values: list[str | int | bool | date]
+    where_value: str | int | bool | date
+    where_column: str
+
+class CreateTable(BaseModel):
+    table_name: str
+    column_names_with_properties: list[str]
 

@@ -9,7 +9,7 @@ joiner_router = APIRouter()
 cursor = get_connection().cursor()
 
 @joiner_router.post("/GetTableJoin")
-async def getTableJoin(model: TableJoinModel):
+async def getTableJoin(model: TableJoinModel): ## Refactor
     await validate_params_against_sqli(dict(model))
     multi_cols = multi_cols = ", ".join(model.columns)
     await request("SELECT %s FROM %s %s JOIN %s ON %s  = %s", 
