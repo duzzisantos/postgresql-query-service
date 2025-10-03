@@ -6,10 +6,19 @@ async def request(query_template: str, variables: tuple[str | int | bool | tuple
     if(query_template.__ne__("") or query_template.__ne__(None)):
 
         cursor = get_connection().cursor()
+        ## add more connection checks as you wish
 
         try:
             with cursor as cur:
                 cur.execute(query_template, variables)
+
+                rows = cur.fetchall()
+                
+                if len(rows):
+                    for row in rows:
+                      print(row)
+                else:
+                    return {"Error":"Table is empty"}
                       
         except errors.ConnectionFailure: 
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service Unavailable. Check Connection Settings and Retry")

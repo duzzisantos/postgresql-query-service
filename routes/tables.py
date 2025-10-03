@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Query
 from utils.request import request
-from redis_caching import manage_caching
+from middleware.no_injection import validate_params_against_sqli
 
 table_router = APIRouter()
 CACHE_TIME = int(1200)
@@ -12,6 +12,7 @@ async def findTables():
 
 @table_router.post("/CreateTable", status_code=status.HTTP_201_CREATED)
 async def createTable(columns: list[str], table_name=Query(...)):
+    await validate_params_against_sqli({"columns": columns})
     multi_cols = ", ".join(columns)
     print(multi_cols)
     
