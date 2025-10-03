@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 import psycopg2
 from fastapi.middleware.cors import CORSMiddleware
-from routes.joiners import joiner_router
-from routes.mutators import mutator_router
-from routes.select_all import select_all_router
-from routes.select_by_columns import select_by_column_router
-from routes.tables import table_router
-from routes.connection_verify import connection_verify
+from app.routes.joiners import joiner_router
+from app.routes.mutators import mutator_router
+from app.routes.select_all import select_all_router
+from app.routes.select_by_columns import select_by_column_router
+from app.routes.tables import table_router
+from app.routes.connection_verify import connection_verify
+from app.download_queries.queried_downloads import queried_download_router
 from dotenv import load_dotenv
 import uvicorn
 import os
@@ -45,7 +46,8 @@ app.include_router(mutator_router)
 app.include_router(select_all_router)
 app.include_router(select_by_column_router)
 app.include_router(table_router)
+app.include_router(queried_download_router)
 
 if __name__  == "__main__":
     main()
-    uvicorn.run(app, host=localhost, port=int(port))
+    uvicorn.run("app.main:app", host=localhost, port=int(port))

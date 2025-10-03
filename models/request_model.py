@@ -103,3 +103,7 @@ class CreateTable(BaseModel):
     table_name: str
     column_names_with_properties: list[str]
 
+class QueryDownload(BaseModel):
+    query: str
+    file_name: str
+
