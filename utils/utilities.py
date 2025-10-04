@@ -1,10 +1,16 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 def manage_http_response(status: int, message: str | dict):
     return HTTPException(status_code=status, detail=message)
 
 def fetch_all_as_dict(cursor):
-    columns = [desc[0] for desc in cursor.description]
-    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    
+    if [cursor.statusmessage.__contains__(item) for item in ["INSERT", "DELETE", "UPDATE"]]:
+         return {"rows_affected": cursor.rowcount, "status_message": cursor.statusmessage}
+    elif len(cursor.fetchall()) == 1:
+         return cursor.fetchone()
+    elif len(cursor.fetchall()) > 1:
+         columns = [desc[0] for desc in cursor.description]
+         return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 def set_items(model):
         if len(model.set_columns) != len(model.set_values):

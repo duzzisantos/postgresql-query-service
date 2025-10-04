@@ -7,12 +7,11 @@ async def request(query_template: str, variables: tuple[str | int | bool | tuple
     if(query_template.__ne__("") or query_template.__ne__(None)):
 
         cursor = get_connection().cursor()
-        ## Revoir: ajouter n'importe parametres concernant de la connexion
 
         try:
             with cursor as cur:
                 cur.execute(query_template, variables)
-                print(fetch_all_as_dict(cur)) ## Revoir: on doit ameliorer les reponses pour les tâches sans 'select *'
+                print(fetch_all_as_dict(cur))
                 
                 
         except errors.ConnectionFailure: 
