@@ -15,7 +15,8 @@ async def findTables():
           AND table_schema NOT IN ('pg_catalog', 'information_schema')
         ORDER BY table_schema, table_name
     """
-    await request(query, None)
+    res =  await request(query, None)
+    return res
    
 
 @table_router.post("/CreateTable", status_code=status.HTTP_201_CREATED) ##ça marche
@@ -23,4 +24,5 @@ async def createTable(model: CreateTable):
     await validate_params_against_sqli(dict(model))
     multi_cols = ", ".join(model.column_names_with_properties)
 
-    await request(f"CREATE TABLE {model.table_name} ({multi_cols})", ())
+    res =  await request(f"CREATE TABLE {model.table_name} ({multi_cols})", ())
+    return res

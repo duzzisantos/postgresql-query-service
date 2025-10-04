@@ -2,6 +2,7 @@ from fastapi import APIRouter, status, HTTPException
 from models.request_model import CreateRow, CreateMany, DeleteRow, DeleteMany, DeleteByParams, UpdateMany, UpdateRow
 from middleware.connection_state import get_connection
 from utils.utilities import fetch_all_as_dict, set_items
+from app.routes.observability import handle_logging
 from utils.request import request
 from datetime import date
 from middleware.no_injection import validate_params_against_sqli
@@ -16,7 +17,8 @@ async def createOne(model: CreateRow):
     multi_cols = ", ".join(model.columns)
     
     query = f"INSERT INTO {model.table} ({multi_cols}) VALUES {tuple(model.values)}"
-    await request(query, (model.table, model.columns, model.values))
+    result = await request(query, (model.table, model.columns, model.values))
+    return result
 
  
 
@@ -35,29 +37,31 @@ async def createMany(model: CreateMany):
     dynamic_values = ", ".join(str(t) for t in tupulize_values())
 
     query = f"INSERT INTO {model.table} ({multi_cols}) VALUES {dynamic_values}"
-    await request(query, (model.table, model.columns, model.values))
+    result = await request(query, (model.table, model.columns, model.values))
+    return result
 
     
 
 @mutator_router.post("/DeleteById") ## ca marche
 async def deleteById(model: DeleteRow):
    await validate_params_against_sqli(dict(model))
-   await request(f"DELETE FROM {model.table} WHERE {model.primary_column} = {int(model.id)}", ())
+   result = await request(f"DELETE FROM {model.table} WHERE {model.primary_column} = {int(model.id)}", ())
+   return result
 
   
 
 @mutator_router.post("/DeleteMany") ## ca marche
 async def deleteMany(model: DeleteMany):
     await validate_params_against_sqli(dict(model))
-    request(f"DELETE FROM {model.table}", ())
+    result = await request(f"DELETE FROM {model.table}", ())
+    return result
  
 
 @mutator_router.post("/UpdateOne") ## ca marche
 async def updateOne(model: UpdateRow):
     await validate_params_against_sqli(dict(model))
-    print(f"UPDATE {model.table} SET {model.secondary_column} = {model.set_value} WHERE {model.primary_column} =  {model.where_value}")
-    await request((f"UPDATE {model.table} SET {model.secondary_column} = {model.set_value} WHERE {model.primary_column} =  {model.where_value}"), ())
- 
+    result = await request((f"UPDATE {model.table} SET {model.secondary_column} = {model.set_value} WHERE {model.primary_column} =  {model.where_value}"), ())
+    return result
 
 
 @mutator_router.post("/UpdateMany",  status_code=status.HTTP_200_OK) ## ca marche
@@ -66,11 +70,12 @@ async def updateMany(model: UpdateMany):
     try:
         with cursor as cur:
             query = f"UPDATE {model.table} SET {set_items(model)} WHERE {model.where_column} = '{model.where_value}'"
-            print(query)
             cur.execute(query)
-            print(fetch_all_as_dict(cur))
+            await handle_logging("dml", fetch_all_as_dict(cur))
+            return fetch_all_as_dict(cur)
     
-    except Exception as e: 
+    except Exception:
+            await handle_logging("error", "Updating many resources not successfully carried out. Check parameters") 
             raise HTTPException(status_code=500, detail='Updating many resources not successfully carried out. Check parameters')
     finally:
         cursor.close()

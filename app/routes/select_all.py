@@ -5,7 +5,7 @@ from middleware.connection_state import get_connection
 from middleware.no_injection import validate_params_against_sqli
 from utils.request import request
 from utils.utilities import fetch_all_as_dict
-from psycopg2 import sql
+from app.routes.observability import handle_logging
 
 select_all_router = APIRouter()
 cursor = get_connection().cursor()
@@ -14,14 +14,16 @@ CACHE_TIME = int(1200)
 @select_all_router.post("/GetAll", status_code=status.HTTP_200_OK) ##ça marche
 async def getAll(model: GetAll):
     await validate_params_against_sqli(dict(model))
-    await request(f"SELECT * FROM {model.table}", (model.table))
+    result = await request(f"SELECT * FROM {model.table}", (model.table))
+    return result
    
 
 
 @select_all_router.post("/GetAllOrderBy", status_code=status.HTTP_200_OK) ##ça marche
 async def getAllOrderBy(model: OrderBy):
     await validate_params_against_sqli(dict(model))
-    await request(f"SELECT * FROM {model.table} ORDER BY {model.order}", ())
+    result = await request(f"SELECT * FROM {model.table} ORDER BY {model.order}", ())
+    return result
    
 
     
@@ -29,14 +31,16 @@ async def getAllOrderBy(model: OrderBy):
 async def getAllWithLimitAndOffset(model: LimitAndOffset):
      await validate_params_against_sqli(dict(model))
      query = f"SELECT * FROM {model.table} LIMIT {model.limit} OFFSET {model.offset}"
-     await request(query, ())
+     result = await request(query, ())
+     return result
  
     
 
 @select_all_router.post("/GetAllWithLimit", status_code=status.HTTP_200_OK) ##ça marche
 async def getAllWithLimit(model: WithLimit):
     await validate_params_against_sqli(dict(model))
-    await request(f"SELECT * FROM {model.table} LIMIT {model.limit}", ())
+    result = await request(f"SELECT * FROM {model.table} LIMIT {model.limit}", ())
+    return result
 
     
    
@@ -51,14 +55,17 @@ async def getAllWhere(model: AllWhere):
             if(len(model.conditions) == 1):
                 query_conditions = " ".join(model.conditions)
                 cur.execute(f"SELECT * FROM {model.table} WHERE {query_conditions}", ())
-                print(fetch_all_as_dict(cur))
+                await handle_logging("success", fetch_all_as_dict(cur))
+                return fetch_all_as_dict(cur)
                 
             elif(len(model.conditions) > 1):
                 query_conditions = " AND ".join(model.conditions)
                 cur.execute(f"SELECT * FROM {model.table} WHERE {query_conditions}", ())
-                print(fetch_all_as_dict(cur))
+                await handle_logging("success", fetch_all_as_dict(cur))
+                return fetch_all_as_dict(cur)
     
     except Exception:
+        await handle_logging("error", "Bad Request")
         raise HTTPException(status_code=400, detail="Bad Request")
     finally:
         cursor.close()
@@ -76,14 +83,17 @@ async def getAllWhereAndOrderBy(model: AllWhereOrderBy):
             if(len(model.conditions) == 1):
                 query_conditions = " ".join(model.conditions)
                 cur.execute(f"SELECT * FROM {model.table} WHERE {query_conditions} ORDER BY {model.order}", ())
-                print(fetch_all_as_dict(cur))
+                await handle_logging("success", fetch_all_as_dict(cur))
+                return fetch_all_as_dict(cur)
             else:
                 query_conditions = " AND ".join(model.conditions)
                 print(query_conditions)
                 cur.execute(f"SELECT * FROM {model.table} WHERE {query_conditions} ORDER BY {model.order}", ())
-                print(fetch_all_as_dict(cur))
+                await handle_logging("success", fetch_all_as_dict(cur))
+                return fetch_all_as_dict(cur)
     
     except Exception:
+        await handle_logging("error", "Bad Request")
         raise HTTPException(status_code=400, detail="Bad Request")
     finally:
         cursor.close()
@@ -96,9 +106,11 @@ async def getAllBetween(model: AllBetween):
         with cursor as cur:
           query = f"SELECT * FROM {model.table} WHERE {model.column} BETWEEN {model.start} AND {model.end}"
           cur.execute(query, ())
-          print(fetch_all_as_dict(cur))
+          await handle_logging("success", fetch_all_as_dict(cur))
+          return fetch_all_as_dict(cur)
     
     except Exception:
+        await handle_logging("error", "Bad Request")
         raise HTTPException(status_code=400, detail="Bad Request")
     finally:
         cursor.close()
@@ -113,9 +125,11 @@ async def getAllWhereMatches(model: AllWhereMatches):
     try:
         with cursor as cur:
             cur.execute(f"SELECT * FROM {model.table} WHERE {model.column} LIKE {dynamic_wildcard}", ())
-            print(fetch_all_as_dict(cur))
+            await handle_logging("success", fetch_all_as_dict(cur))
+            return fetch_all_as_dict(cur)
     
     except Exception:
+        await handle_logging("error", "Bad Request")
         raise HTTPException(status_code=400, detail="Bad Request")
     finally:
         cursor.close()
@@ -125,29 +139,31 @@ async def getAllWhereIn(model: AllWhereIn):
     await validate_params_against_sqli(dict(model))
     joined_str = tuple(model.search_parameters)
   
-    await request(f"SELECT * FROM {model.table} WHERE {model.column} IN {joined_str}", ())
+    result = await request(f"SELECT * FROM {model.table} WHERE {model.column} IN {joined_str}", ())
+    return result
     
 
 
 @select_all_router.post("/GetAllWhereAndCount", status_code=status.HTTP_200_OK) ## ca marche
 async def getAllWhereAndCount(model: AllWhereAndCount):
     await validate_params_against_sqli(dict(model))
-    await request(f"SELECT COUNT({model.primary_column}) FROM {model.table} WHERE {model.secondary_column} = '{model.search_parameter}'", ())
-    
+    result = await request(f"SELECT COUNT({model.primary_column}) FROM {model.table} WHERE {model.secondary_column} = '{model.search_parameter}'", ())
+    return result
 
 @select_all_router.post("/GetAllWhereAverage", status_code=status.HTTP_200_OK) ## ca marche
 async def getAllWhereAndAverage(model: AllWhereAverageModel):
     await validate_params_against_sqli(dict(model))
-    await request(f"SELECT AVG({model.column})::NUMERIC(10,2) FROM {model.table}", (model.table, model.column))
+    result = await request(f"SELECT AVG({model.column})::NUMERIC(10,2) FROM {model.table}", (model.table, model.column))
+    return result
    
 
 
 @select_all_router.post("/GetAllGroupBy", status_code=status.HTTP_200_OK) ## ca marche
 async def getAllWhereAndGroupBy(model: AllGroupByModel):
     await validate_params_against_sqli(dict(model))
-    await request(f"SELECT {model.secondary_column}, COUNT({model.primary_column}) FROM {model.table} GROUP BY {model.secondary_column}", ())
+    result = await request(f"SELECT {model.secondary_column}, COUNT({model.primary_column}) FROM {model.table} GROUP BY {model.secondary_column}", ())
     
-
+    return result
 
 
 

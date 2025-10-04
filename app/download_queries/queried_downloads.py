@@ -6,6 +6,7 @@ from utils.utilities import fetch_all_as_dict
 from io import BytesIO
 from fastapi.responses import StreamingResponse
 from models.request_model import QueryDownload
+from app.routes.observability import handle_logging
 
 queried_download_router = APIRouter()
 
@@ -18,7 +19,8 @@ async def get_queried_download(model: QueryDownload):
         query_result = fetch_all_as_dict(cursor)
 
         if not query_result:
-            raise HTTPException(status_code=404, detail="Queried Resource Does Not Exist")
+            await handle_logging("error", "Queried Resource For Downloading Does Not Exist")
+            raise HTTPException(status_code=404, detail="Queried Resource For Downloading Does Not Exist")
 
         workbook = Workbook()
         sheet = workbook.active
@@ -33,6 +35,8 @@ async def get_queried_download(model: QueryDownload):
         workbook.save(output)
         output.seek(0)
 
+        
+        await handle_logging("success", "Query Download SuccessFul")
         return StreamingResponse(
             output,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -40,9 +44,11 @@ async def get_queried_download(model: QueryDownload):
         )
 
     except errors.SyntaxError:
-        raise HTTPException(status_code=422, detail="Query Syntax Error Occurred")
+        await handle_logging("error", "Query Syntax Error For Downloading Occurred")
+        raise HTTPException(status_code=422, detail="Query Syntax Error For Downloading Occurred")
     except errors.InternalError:
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        await handle_logging("error", "Internal Server Error While Processing Queried Downloads")
+        raise HTTPException(status_code=500, detail="Internal Server Error While Processing Queried Downloads")
     finally:
         if cursor:
             cursor.close()

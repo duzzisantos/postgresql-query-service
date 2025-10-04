@@ -1,6 +1,7 @@
 import re
 from fastapi import status, HTTPException
 from psycopg2 import errors
+from app.routes.observability import handle_logging
 import datetime
 
 SQLI_PATTERNS = [
@@ -30,13 +31,12 @@ async def validate_params_against_sqli(params: dict):
         issues = []
         for key, value in params.items():
            if isinstance(value, str) and is_potential_sqli(value):
-              ## should be sent to your logger (whichever you choose) - don't expose to users!!!!!
-              print(get_validation_log(key, value))
+              await handle_logging("error", get_validation_log(key, value))
            elif isinstance(value, list) and len(value) != 0:
                for element in value:
                    if(is_potential_sqli(element)):
                        issues.append(element)
-                       print(get_validation_log(key, issues))
+                       await handle_logging("error", get_validation_log(key, value))
     
         return issues
                        

@@ -12,14 +12,16 @@ CACHE_TIME = int(1200)
 async def getByColumns(model: ByColumns):
     await validate_params_against_sqli(dict(model))
     comma_separated_columns = ", ".join(model.columns)
-    await request(f"SELECT {comma_separated_columns} FROM {model.table}", (comma_separated_columns, model.table))
+    res = await request(f"SELECT {comma_separated_columns} FROM {model.table}", (comma_separated_columns, model.table))
+    return res
     
 
 @select_by_column_router.post("/GetByColumnsAndOrderBy", status_code=status.HTTP_200_OK) ##ça marche
 async def getByColumnsOrderBy(model: ByColumnsAndOrder):
     await validate_params_against_sqli(dict(model))
     multi_cols = ", ".join(model.columns)
-    await request(f"SELECT {multi_cols} FROM {model.table} ORDER BY {model.order}", (multi_cols, model.table, model.order))
+    res = await request(f"SELECT {multi_cols} FROM {model.table} ORDER BY {model.order}", (multi_cols, model.table, model.order))
+    return res
   
 
 
@@ -27,6 +29,7 @@ async def getByColumnsOrderBy(model: ByColumnsAndOrder):
 async def getByColumnsAndLimit(model: ByColumnsAndLimit):
     await validate_params_against_sqli(dict(model))
     multi_cols = ", ".join(model.columns)
-    await request(f"SELECT {multi_cols} FROM {model.table} LIMIT {model.limit}", (multi_cols, model.table, model.limit))
+    res = await request(f"SELECT {multi_cols} FROM {model.table} LIMIT {model.limit}", (multi_cols, model.table, model.limit))
+    return res
   
         

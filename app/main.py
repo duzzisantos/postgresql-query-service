@@ -8,6 +8,7 @@ from app.routes.select_by_columns import select_by_column_router
 from app.routes.tables import table_router
 from app.routes.connection_verify import connection_verify
 from app.download_queries.queried_downloads import queried_download_router
+from app.routes.observability import log_router
 from dotenv import load_dotenv
 import uvicorn
 import os
@@ -47,6 +48,7 @@ app.include_router(select_all_router)
 app.include_router(select_by_column_router)
 app.include_router(table_router)
 app.include_router(queried_download_router)
+app.include_router(log_router)
 
 if __name__  == "__main__":
     main()

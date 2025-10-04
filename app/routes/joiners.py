@@ -12,9 +12,10 @@ cursor = get_connection().cursor()
 async def getTableJoin(model: TableJoinModel): ## Refactor
     await validate_params_against_sqli(dict(model))
     multi_cols = multi_cols = ", ".join(model.columns)
-    await request("SELECT %s FROM %s %s JOIN %s ON %s  = %s", 
+    result = await request("SELECT %s FROM %s %s JOIN %s ON %s  = %s", 
                                 (multi_cols, model.primary_table, model.join_type, model.secondary_table, model.primary_table[model.common_key],
                                     model.secondary_table[model.common_key]))
+    return result
     
     
     
