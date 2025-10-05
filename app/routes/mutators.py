@@ -24,7 +24,7 @@ async def createOne(model: CreateRow):
 
 @mutator_router.post("/CreateMany") ## ca marche
 async def createMany(model: CreateMany):
-    # await validate_params_against_sqli(dict(model))
+    await validate_params_against_sqli(dict(model))
     multi_cols = ", ".join(model.columns)
     
     def tupulize_values():
@@ -37,8 +37,8 @@ async def createMany(model: CreateMany):
     dynamic_values = ", ".join(str(t) for t in tupulize_values())
 
     query = f"INSERT INTO {model.table} ({multi_cols}) VALUES {dynamic_values}"
-    result = await request(query, (model.table, model.columns, model.values))
-    return result
+    res = await request(query, (model.table, model.columns, model.values))
+    return res
 
     
 

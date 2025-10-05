@@ -61,7 +61,14 @@ class TableJoinModel(BaseModel):
     primary_table: str
     secondary_table: str
     common_key: str
-    join_type: str
+
+class SubQueryExists(BaseModel):
+    primary_column: str
+    primary_table: str
+    sub_query_select: str
+    sub_query_table: str
+    sub_query_where_column: str
+    sub_query_where_value: str
 
 class CreateRow(BaseModel):
     columns: list[str]
