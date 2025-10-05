@@ -16,7 +16,7 @@ desired data.
 - specific select statements
 
 3. Test/verify that you are rightly connected to your postgresql network
-4. Read and test through Swagger UI docs by visiting http://yourhost:port/docs
+4. Read fuller API documentation and test through Swagger UI docs by visiting http://localhost:your-port/docs
 5. Apply necessary request body for each route
 6. Refer to .env.example file to see variables you may need to run this application
 7. Run locally on terminal: uvicorn app.main:app --port 'your-port' --reload
@@ -32,7 +32,7 @@ This includes queries for inner, right, left, and full joins. There is also a qu
 ## Mutators
 
 This set of queries lets you run various create, delete, and update statements. While creating new tables, make sure to include
-data types and character limits for each column. These are to be provided as comma separated strings in the request bodt.
+data types and character limits for each column. These are to be provided as comma separated strings in the request body.
 
 ## General Select Statements
 
