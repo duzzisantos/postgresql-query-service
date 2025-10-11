@@ -36,11 +36,15 @@ def main():
 
     pg_version = cursor.fetchone()[0]
     print({"postgresql_version": pg_version})
+    
 
 
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True,
                         allow_methods=["POST, GET"], allow_headers=["*"])
 
+
+## Included routes
+app.include_router(log_router)
 app.include_router(connection_verify)
 app.include_router(joiner_router)
 app.include_router(mutator_router)
@@ -48,7 +52,7 @@ app.include_router(select_all_router)
 app.include_router(select_by_column_router)
 app.include_router(table_router)
 app.include_router(queried_download_router)
-app.include_router(log_router)
+
 
 if __name__  == "__main__":
     main()

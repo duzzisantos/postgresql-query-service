@@ -3,10 +3,11 @@ from fastapi import APIRouter, HTTPException, status
 from psycopg2 import errors
 from middleware.connection_state import get_connection
 from utils.utilities import fetch_all_as_dict
+from app.routes.observability import handle_logging
 from io import BytesIO
 from fastapi.responses import StreamingResponse
 from models.request_model import QueryDownload
-from app.routes.observability import handle_logging
+from models.emailing_model import SendQueryFileToEmail, EmailProperties
 
 queried_download_router = APIRouter()
 
@@ -55,6 +56,20 @@ async def get_queried_download(model: QueryDownload):
         if conn:
             conn.close()
             
-        
+
+async def download_result():
+    return await get_queried_download()
+
+
+
+
+queried_download_router.post("/DispatchDownload", status_code=status.HTTP_200_OK)
+async def dispatchDownload(model: EmailProperties):
+    
+    attachment = await download_result()
+    email = SendQueryFileToEmail(model.recipient, model.sender, model.password, model.role,
+                                  model.subject, model.message, model.email_server, attachment=attachment)
+    
+    return await email.send_to_recipients()
 
 

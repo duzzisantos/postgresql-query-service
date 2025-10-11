@@ -1,6 +1,5 @@
 from middleware.connection_state import get_connection
 from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse
 from psycopg2 import errors
 from utils.utilities import fetch_all_as_dict
 from app.routes.observability import handle_logging
@@ -42,6 +41,6 @@ async def request(query_template: str, variables: tuple[str | int | bool | tuple
         
         else:
             await handle_logging("error", "Empty Queries Not Allowed") 
-            raise HTTPException(status_code=status.HTTP_400, detail="Empty Queries Not Allowed")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty Queries Not Allowed")
 
  

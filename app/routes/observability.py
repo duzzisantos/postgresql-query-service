@@ -6,7 +6,7 @@ import sys
 log_router = APIRouter()
 
 log_router.post("/GetLog", status_code=status.HTTP_200_OK)
-async def get_query_log(log_type: str, message: str | dict | list[str]):
+async def getQueryLog(log_type: str, message: str | dict | list[str]):
 
     if log_type == "error":
         logger.add(sys.stderr, format="{level} : {time} : {message}: {process}")
@@ -16,9 +16,7 @@ async def get_query_log(log_type: str, message: str | dict | list[str]):
         logger.add(sys.stdout, format="{level} : {time} : {message}: {process}")
         logger.success(message)
 
-         
-
 
 async def handle_logging(log_type: str, message: str | dict | list[dict]):
     ## store in logging database or observability service
-    return await get_query_log(log_type, message)
+    return await getQueryLog(log_type, message)
