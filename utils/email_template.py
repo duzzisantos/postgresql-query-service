@@ -4,9 +4,10 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from fastapi import HTTPException
+from io import BytesIO
 
 
-async def dispatch_email(mail_server: str, subject: str, body: str, sender_email: str, receiver_email: str | list[str], password: str, attachment):
+async def dispatch_email(mail_server: str, subject: str, body: str, sender_email: str, receiver_email: str | list[str], password: str, attachment: BytesIO):
     
    try:
        ## Create multipart message with headers
@@ -19,9 +20,9 @@ async def dispatch_email(mail_server: str, subject: str, body: str, sender_email
     message.attach(MIMEText(body, "plain"))
     filename = attachment
 
-    with open(filename, 'rb') as attached_file:
-        part = MIMEBase("application", "octet-stream")
-        part.set_payload(attached_file.read())
+  
+    part = MIMEBase("application", "octet-stream")
+    part.set_payload(attachment.getvalue())
 
     
     ## Encode part as ASCII
@@ -38,9 +39,8 @@ async def dispatch_email(mail_server: str, subject: str, body: str, sender_email
 
    ## Context for SSL
     context = ssl.create_default_context()
-    connection_server = smtplib.SMTP_SSL(mail_server, 465, context=context)
 
-    with connection_server as server:
+    with smtplib.SMTP_SSL(mail_server, 465, context=context) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, text)
 
@@ -53,10 +53,6 @@ async def dispatch_email(mail_server: str, subject: str, body: str, sender_email
    except errors.MessageError:
       raise HTTPException(status_code=500, detail="Internal Server Error")
    
-
-   finally:
-      if connection_server:
-         connection_server.close()
 
     
 

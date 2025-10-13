@@ -28,6 +28,7 @@ origins = [
 async def root():
     return {"message": "enter /docs to view API documentation"}
 
+
 def main():
     conn = psycopg2.connect(postgres_url)
     query_sql = 'SELECT VERSION()'

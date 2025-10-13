@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Query
+from fastapi import APIRouter, status
 from utils.request import request
 from middleware.no_injection import validate_params_against_sqli
 from models.request_model import CreateTable

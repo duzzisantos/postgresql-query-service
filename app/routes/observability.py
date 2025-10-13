@@ -5,7 +5,7 @@ import sys
 
 log_router = APIRouter()
 
-log_router.post("/GetLog", status_code=status.HTTP_200_OK)
+@log_router.post("/GetLog", status_code=status.HTTP_200_OK)
 async def getQueryLog(log_type: str, message: str | dict | list[str]):
 
     if log_type == "error":

@@ -16,8 +16,8 @@ class SendQueryFileToEmail:
     def validate_email_content(self):
             if(self.role.__eq__("")):
                 return {"Message": "You must specify user role", "Status": False}
-            elif(self.role and (item.__eq__("") or len(item) == 0) for item in [self.recipient, self.sender, self.password, self.message, 
-                                                                                self.role, self.subject, self.email_server, self.attachment]):
+            elif(self.recipient.__eq__("") or self.sender.__eq__("") or self.password.__eq__("") or self.message.__eq__("") or 
+                                                                                self.role.__eq__("") or  self.subject.__eq__("") or self.email_server.__eq__("") ):
                 return {"Message": "All email content must be fully provided", "Status": False}
             else:
                 return {"Message": "Successful validation", "Status": True}
@@ -33,16 +33,3 @@ class SendQueryFileToEmail:
 
     ## Add any other email template
 
-        
-
-
-
-class EmailProperties(BaseModel):
-     recipient: str | list[str]
-     sender: str
-     password: str
-     role: str | list[str]
-     subject: str
-     message: str
-     email_server: str
-     attachment: str | Any        

@@ -113,4 +113,12 @@ class CreateTable(BaseModel):
 class QueryDownload(BaseModel):
     query: str
     file_name: str
+    recipient: Optional[str | list[str]]
+    sender: str
+    password: str
+    role: Optional[str | list[str]]
+    subject: str
+    message: str
+    email_server: str
+
 

@@ -4,10 +4,8 @@ from psycopg2 import errors
 from middleware.connection_state import get_connection
 from utils.utilities import fetch_all_as_dict
 from app.routes.observability import handle_logging
-from io import BytesIO
-from fastapi.responses import StreamingResponse
+from app.tasks.celery_app import send_weekly_query_report
 from models.request_model import QueryDownload
-from models.emailing_model import SendQueryFileToEmail, EmailProperties
 
 queried_download_router = APIRouter()
 
@@ -23,26 +21,10 @@ async def get_queried_download(model: QueryDownload):
             await handle_logging("error", "Queried Resource For Downloading Does Not Exist")
             raise HTTPException(status_code=404, detail="Queried Resource For Downloading Does Not Exist")
 
-        workbook = Workbook()
-        sheet = workbook.active
-        headers = list(dict.fromkeys(key for instance in query_result for key in instance))
-        sheet.append(headers)
-
-        for row in query_result:
-            sheet.append([row.get(h) for h in headers])
-
-        # Save to in-memory stream
-        output = BytesIO()
-        workbook.save(output)
-        output.seek(0)
-
+        ## Crontab schedule
+        await send_weekly_query_report(model, query_result)
         
-        await handle_logging("success", "Query Download SuccessFul")
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={model.file_name}"}
-        )
+        await handle_logging("success", "Query Download and Email Dispatch Was SuccessFul")
 
     except errors.SyntaxError:
         await handle_logging("error", "Query Syntax Error For Downloading Occurred")
@@ -55,21 +37,6 @@ async def get_queried_download(model: QueryDownload):
             cursor.close()
         if conn:
             conn.close()
-            
-
-async def download_result():
-    return await get_queried_download()
-
-
-
-
-queried_download_router.post("/DispatchDownload", status_code=status.HTTP_200_OK)
-async def dispatchDownload(model: EmailProperties):
-    
-    attachment = await download_result()
-    email = SendQueryFileToEmail(model.recipient, model.sender, model.password, model.role,
-                                  model.subject, model.message, model.email_server, attachment=attachment)
-    
-    return await email.send_to_recipients()
+        
 
 
