@@ -23,7 +23,32 @@ desired data.
 
 ## Connection Verification
 
-This tests connection to your PostgreSQL server and returns a lightweight test query result
+This tests connection to your PostgreSQL server and returns a lightweight test query result. How do you connect? It's
+simple: plug in your PostgreSQL connection string here if you are connecting from a cloud service:
+
+```code
+def get_connection():
+    conn = psycopg2.connect(os.getenv("POSTGRES_URL"))
+    conn.autocommit = True
+    return conn
+```
+
+For every database operation you would then consume the connection's cursor. For example:
+
+```code
+cursor = get_connection().cursor()
+cursor.execute(my_parameterized_query_template, variables)
+result = cursor.fetchone()
+```
+
+In alternative, you may provide database connection parameters this way if you have those credentials available:
+
+```code
+def get_connection():
+    conn = psycopg2.connect(os.getenv(dbname=name, password=password, host=host, port=port ))
+    conn.autocommit = True
+    return conn
+```
 
 ## Joiners
 
