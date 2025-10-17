@@ -378,7 +378,7 @@ query failure from the onset within any given route. This error is sent to eithe
 
 <p>1. Define SQLi patterns you would like to catch: </p>
 
-```json
+```code
 SQLI_PATTERNS = [
     r"\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|EXEC|--|#|;)\b",
     r"' OR '1'='1",
@@ -389,7 +389,7 @@ SQLI_PATTERNS = [
 
 <p>2. Validation issue template which sends log or response with validation feedback: </p>
 
-```json
+```code
 def get_validation_log(key: str, issues: str | list[str]):
     return {
             "timestamp": datetime.datetime.now().__str__(),
@@ -402,7 +402,7 @@ def get_validation_log(key: str, issues: str | list[str]):
 
 <p>Returns true is query template has potential SQLi: </p>
 
-```json
+```code
 def is_potential_sqli(param: str) -> bool:
     for pattern in SQLI_PATTERNS:
         if re.search(pattern, param, flags=re.IGNORECASE):
@@ -412,7 +412,7 @@ def is_potential_sqli(param: str) -> bool:
 
 <p>Performs full validation by for single value parameters of list of parameters: </p>
 
-```json
+```code
 async def validate_params_against_sqli(params: dict):
     try:
         issues = []
