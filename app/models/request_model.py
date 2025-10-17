@@ -160,7 +160,7 @@ for model in models:
     json_body = json.dumps(example, indent=2)
     
     block = (
-        f"<details>\n"
+        f"<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >\n"
         f"<summary><strong>POST {route}</strong></summary>\n\n"
         f"```json\n"
         f"{json_body}\n"

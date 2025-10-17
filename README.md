@@ -15,7 +15,7 @@ desired data.
 - general select statements
 - specific select statements
 
-3. Test/verify that you are rightly connected to your postgresql network
+3. Test/verify that you are rightly connected to your postgresql network and run **docker compose up --build -d**
 4. Read fuller API documentation and test through Swagger UI docs by visiting http://localhost:your-port/docs
 5. Apply necessary request body for each route
 6. Refer to .env.example file to see variables you may need to run this application
@@ -40,7 +40,7 @@ This set of queries help you run various general select statements
 
 ## Specific Select Statements
 
-This allows you query tables to extract information for specific columns
+This allows you query tables to extract information for specific columns. With a crontab set - powered by Celery, you can schedule query downloads as CSV/Excel files fired to selected email addresses. It is up to you
 
 ## API Illustrations & Examples
 
@@ -364,6 +364,71 @@ This allows you query tables to extract information for specific columns
   "message": "example_string",
   "email_server": "example_string"
 }
+```
+
+</details>
+
+<details>
+<summary><strong>SQLi Considerations</strong></summary>
+<section>Query Builders might be susceptible to SQL injections, and to combat this, an SQLi validator is
+called at the top level of every route to track if failing the rules of parameterized queries. Normally,
+you should try to prevent using various dangerous PostgreSQL statements which are set aside to trigger 
+query failure from the onset within any given route. This error is sent to either your logger or HTTP Response.
+</section>
+
+<p>1. Define SQLi patterns you would like to catch: </p>
+
+```json
+SQLI_PATTERNS = [
+    r"\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|EXEC|--|#|;)\b",
+    r"' OR '1'='1",
+    r"(?i)(\bor\b|\band\b)\s+\d+=\d+",
+]
+
+```
+
+<p>2. Validation issue template which sends log or response with validation feedback: </p>
+
+```json
+def get_validation_log(key: str, issues: str | list[str]):
+    return {
+            "timestamp": datetime.datetime.now().__str__(),
+            "validation_warning": f"Validation failed! Unsupported content. Attempted SQLi attack using parameter: {key}.",
+            "rejected_value": issues,
+            "status": True
+            }
+
+```
+
+<p>Returns true is query template has potential SQLi: </p>
+
+```json
+def is_potential_sqli(param: str) -> bool:
+    for pattern in SQLI_PATTERNS:
+        if re.search(pattern, param, flags=re.IGNORECASE):
+            return True
+    return False
+```
+
+<p>Performs full validation by for single value parameters of list of parameters: </p>
+
+```json
+async def validate_params_against_sqli(params: dict):
+    try:
+        issues = []
+        for key, value in params.items():
+           if isinstance(value, str) and is_potential_sqli(value):
+              await handle_logging("error", get_validation_log(key, value))
+           elif isinstance(value, list) and len(value) != 0:
+               for element in value:
+                   if(is_potential_sqli(element)):
+                       issues.append(element)
+                       await handle_logging("error", get_validation_log(key, value))
+
+        return issues
+
+    except errors.SyntaxError:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Validation Error Occurred While Processing Request")
 ```
 
 </details>
