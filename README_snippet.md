@@ -1,49 +1,3 @@
-# PostgreSQL Query Service
-
-You can use this service to perform common DML operations in PostgreSQL
-using custom query builders that can manipulate your database and return
-desired data.
-
-## Use
-
-1. Query Builders are called inside routes directly to avoid deeply passing connection properties
-2. Routes include:
-
-- connection verification
-- joiners
-- mutators
-- general select statements
-- specific select statements
-
-3. Test/verify that you are rightly connected to your postgresql network
-4. Read fuller API documentation and test through Swagger UI docs by visiting http://localhost:your-port/docs
-5. Apply necessary request body for each route
-6. Refer to .env.example file to see variables you may need to run this application
-7. Run locally on terminal: uvicorn app.main:app --port 'your-port' --reload
-
-## Connection Verification
-
-This tests connection to your PostgreSQL server and returns a lightweight test query result
-
-## Joiners
-
-This includes queries for inner, right, left, and full joins. There is also a query template for checking if sub queries exist or not.
-
-## Mutators
-
-This set of queries lets you run various create, delete, and update statements. While creating new tables, make sure to include
-data types and character limits for each column. These are to be provided as comma separated strings in the request body.
-
-## General Select Statements
-
-This set of queries help you run various general select statements
-
-## Specific Select Statements
-
-This allows you query tables to extract information for specific columns
-
-## API Illustrations & Examples
-
 <details>
 <summary><strong>POST /GetAll</strong></summary>
 
@@ -56,7 +10,7 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetAllOrderBy</strong></summary>
+<summary><strong>POST /OrderBy</strong></summary>
 
 ```json
 {
@@ -67,7 +21,7 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetAllLimitAndOffset</strong></summary>
+<summary><strong>POST /LimitAndOffset</strong></summary>
 
 ```json
 {
@@ -79,7 +33,7 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetAllWithLimit</strong></summary>
+<summary><strong>POST /WithLimit</strong></summary>
 
 ```json
 {
@@ -90,18 +44,20 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetAllWhere</strong></summary>
+<summary><strong>POST /AllWhere</strong></summary>
 
 ```json
 {
-  "conditions": ["example_string"]
+  "conditions": [
+    "example_string"
+  ]
 }
 ```
 
 </details>
 
 <details>
-<summary><strong>POST /GetAllWhereOrderBy</strong></summary>
+<summary><strong>POST /AllWhereOrderBy</strong></summary>
 
 ```json
 {
@@ -112,7 +68,7 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetAllBetween</strong></summary>
+<summary><strong>POST /AllBetween</strong></summary>
 
 ```json
 {
@@ -125,7 +81,7 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetAllWhereMatches</strong></summary>
+<summary><strong>POST /AllWhereMatches</strong></summary>
 
 ```json
 {
@@ -137,19 +93,21 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetAllWhereIn</strong></summary>
+<summary><strong>POST /AllWhereIn</strong></summary>
 
 ```json
 {
   "column": "example_string",
-  "search_parameters": ["example_string"]
+  "search_parameters": [
+    "example_string"
+  ]
 }
 ```
 
 </details>
 
 <details>
-<summary><strong>POST /GetAllWhereAndCount</strong></summary>
+<summary><strong>POST /AllWhereAndCount</strong></summary>
 
 ```json
 {
@@ -162,7 +120,7 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetAllWhereAverage</strong></summary>
+<summary><strong>POST /AllWhereAverageModel</strong></summary>
 
 ```json
 {}
@@ -171,7 +129,7 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetAllGroupBy</strong></summary>
+<summary><strong>POST /AllGroupByModel</strong></summary>
 
 ```json
 {
@@ -183,18 +141,20 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetByColumns</strong></summary>
+<summary><strong>POST /ByColumns</strong></summary>
 
 ```json
 {
-  "columns": ["example_string"]
+  "columns": [
+    "example_string"
+  ]
 }
 ```
 
 </details>
 
 <details>
-<summary><strong>POST /GetByColumnsAndOrder</strong></summary>
+<summary><strong>POST /ByColumnsAndOrder</strong></summary>
 
 ```json
 {
@@ -205,7 +165,7 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /GetByColumnsAndLimit</strong></summary>
+<summary><strong>POST /ByColumnsAndLimit</strong></summary>
 
 ```json
 {
@@ -216,11 +176,13 @@ This allows you query tables to extract information for specific columns
 </details>
 
 <details>
-<summary><strong>POST /TableJoin</strong></summary>
+<summary><strong>POST /TableJoinModel</strong></summary>
 
 ```json
 {
-  "columns": ["example_string"],
+  "columns": [
+    "example_string"
+  ],
   "primary_table": "example_string",
   "secondary_table": "example_string",
   "common_key": "example_string"
@@ -250,9 +212,13 @@ This allows you query tables to extract information for specific columns
 
 ```json
 {
-  "columns": ["example_string"],
+  "columns": [
+    "example_string"
+  ],
   "table": "example_string",
-  "values": ["example"]
+  "values": [
+    "example"
+  ]
 }
 ```
 
@@ -263,9 +229,15 @@ This allows you query tables to extract information for specific columns
 
 ```json
 {
-  "columns": ["example_string"],
+  "columns": [
+    "example_string"
+  ],
   "table": "example_string",
-  "values": [["example"]]
+  "values": [
+    [
+      "example"
+    ]
+  ]
 }
 ```
 
@@ -290,7 +262,9 @@ This allows you query tables to extract information for specific columns
 ```json
 {
   "table": "example_string",
-  "primary_key": ["example"]
+  "primary_key": [
+    "example"
+  ]
 }
 ```
 
@@ -301,7 +275,9 @@ This allows you query tables to extract information for specific columns
 
 ```json
 {
-  "conditions": ["example_string"]
+  "conditions": [
+    "example_string"
+  ]
 }
 ```
 
@@ -328,8 +304,12 @@ This allows you query tables to extract information for specific columns
 ```json
 {
   "table": "example_string",
-  "set_columns": ["example_string"],
-  "set_values": ["example"],
+  "set_columns": [
+    "example_string"
+  ],
+  "set_values": [
+    "example"
+  ],
   "where_value": "example",
   "where_column": "example_string"
 }
@@ -343,7 +323,9 @@ This allows you query tables to extract information for specific columns
 ```json
 {
   "table_name": "example_string",
-  "column_names_with_properties": ["example_string"]
+  "column_names_with_properties": [
+    "example_string"
+  ]
 }
 ```
 
