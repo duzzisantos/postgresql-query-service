@@ -1,7 +1,7 @@
 # PostgreSQL Query Service
 
-You can use this service to perform common DML operations in PostgreSQL
-using custom query builders that can manipulate your database and return
+This service performs common DML operations in PostgreSQL
+using custom query builders which interact with your database and return
 desired data.
 
 ## Use
@@ -72,6 +72,8 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAll</strong></summary>
 
+<p>Gets all rows in a table based on table name</p>
+
 ```json
 {
   "table": "example_string"
@@ -83,8 +85,11 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAllOrderBy</strong></summary>
 
+<p>Gets all rows in a table based on table name and orders by a certain column</p>
+
 ```json
 {
+  "table": "example_string",
   "order": "example_string"
 }
 ```
@@ -94,8 +99,11 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAllLimitAndOffset</strong></summary>
 
+<p>Gets all rows in a table based on table name and sets a limit and offset</p>
+
 ```json
 {
+  "table": "string",
   "limit": 123,
   "offset": 123
 }
@@ -106,8 +114,11 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAllWithLimit</strong></summary>
 
+<p>Gets all rows in a table based on table name with specified limit.</p>
+
 ```json
 {
+  "table": "string",
   "limit": 123
 }
 ```
@@ -117,8 +128,13 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAllWhere</strong></summary>
 
+<p>Gets all rows in a table based on table name and columns that match the value of the WHERE clause. 
+Conditions are parameters plugged into to query's WHERE clauses.
+</p>
+
 ```json
 {
+  "table": "string",
   "conditions": ["example_string"]
 }
 ```
@@ -128,8 +144,13 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAllWhereOrderBy</strong></summary>
 
+<p>Gets all rows in a table based on table name and columns that match the value of the WHERE clause. 
+Conditions are parameters plugged into to query's WHERE clauses. Additionally, you could order by specified column.
+</p>
+
 ```json
 {
+  "table": "string",
   "order": "example_string"
 }
 ```
@@ -139,8 +160,12 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAllBetween</strong></summary>
 
+<p>Gets all rows in a table and specifies starting and end rows where result must be produced from.
+</p>
+
 ```json
 {
+  "table": "string",
   "column": "example_string",
   "start": "example_string",
   "end": "example_string"
@@ -151,9 +176,13 @@ This allows you query tables to extract information for specific columns. With a
 
 <details>
 <summary><strong>POST /GetAllWhereMatches</strong></summary>
+<p>Gets all rows in a table based on table name and where column value matches specific wild card. Wild cards could be in from of "%A%" (contains 'A'), "en%" (starts with 'en'), and what have you:
+
+</p>
 
 ```json
 {
+  "table": "string",
   "column": "example_string",
   "wild_card": "example"
 }
@@ -163,6 +192,7 @@ This allows you query tables to extract information for specific columns. With a
 
 <details>
 <summary><strong>POST /GetAllWhereIn</strong></summary>
+<p>Gets all data from based on WHERE search parameters could be found in column.</p>
 
 ```json
 {
@@ -175,6 +205,7 @@ This allows you query tables to extract information for specific columns. With a
 
 <details>
 <summary><strong>POST /GetAllWhereAndCount</strong></summary>
+<p>Gets data from based on WHERE clauses from two columns and counts matching query.</p>
 
 ```json
 {
@@ -186,20 +217,23 @@ This allows you query tables to extract information for specific columns. With a
 
 </details>
 
-<details>
-<summary><strong>POST /GetAllWhereAverage</strong></summary>
+<details> <summary><strong>POST /GetAllWhereAverage</strong></summary> <p>Gets aggregated average for a column with optional search parameters (search_parameters may be an array, a single string, or an integer). Example shows an array.</p>
 
 ```json
-{}
+{
+    "table": "string",
+    "column": "string",
+    "search_parameters": ["string"] or "string" or 123
+}
 ```
 
 </details>
 
-<details>
-<summary><strong>POST /GetAllGroupBy</strong></summary>
+ <details> <summary><strong>POST /GetAllGroupBy</strong></summary> <p>Groups results by primary and secondary columns for a given table.</p>
 
 ```json
 {
+  "table": "example_string",
   "primary_column": "example_string",
   "secondary_column": "example_string"
 }
@@ -207,41 +241,42 @@ This allows you query tables to extract information for specific columns. With a
 
 </details>
 
-<details>
-<summary><strong>POST /GetByColumns</strong></summary>
+ <details> <summary><strong>POST /GetByColumns</strong></summary> <p>Selects only the provided columns from a table.</p>
 
 ```json
 {
+  "table": "example_string",
   "columns": ["example_string"]
 }
 ```
 
 </details>
 
-<details>
-<summary><strong>POST /GetByColumnsAndOrder</strong></summary>
+<details> <summary><strong>POST /GetByColumnsAndOrder</strong></summary> <p>Selects given columns from a table and orders the result.</p>
 
 ```json
 {
-  "order": "example_string"
+  "table": "example_string",
+  "columns": ["example_string"],
+  "order": "created_at DESC"
 }
 ```
 
 </details>
 
-<details>
-<summary><strong>POST /GetByColumnsAndLimit</strong></summary>
+ <details> <summary><strong>POST /GetByColumnsAndLimit</strong></summary> <p>Selects specified columns from a table and limits the number of results.</p>
 
 ```json
 {
-  "limit": 123
+  "table": "example_string",
+  "columns": ["example_string"],
+  "limit": 100
 }
 ```
 
 </details>
 
-<details>
-<summary><strong>POST /TableJoin</strong></summary>
+ <details> <summary><strong>POST /GetTableJoin</strong></summary> <p>Join two tables on a common key and return the specified columns.</p>
 
 ```json
 {
@@ -254,8 +289,7 @@ This allows you query tables to extract information for specific columns. With a
 
 </details>
 
-<details>
-<summary><strong>POST /SubQueryExists</strong></summary>
+<details> <summary><strong>POST /SubQueryExists</strong></summary> <p>Runs a subquery check using EXISTS and returns rows where the subquery condition is satisfied.</p>
 
 ```json
 {
@@ -270,8 +304,7 @@ This allows you query tables to extract information for specific columns. With a
 
 </details>
 
-<details>
-<summary><strong>POST /CreateRow</strong></summary>
+<details> <summary><strong>POST /CreateRow</strong></summary> <p>Inserts a single row into a table. `columns` and `values` must align by index.</p>
 
 ```json
 {
@@ -283,14 +316,16 @@ This allows you query tables to extract information for specific columns. With a
 
 </details>
 
-<details>
-<summary><strong>POST /CreateMany</strong></summary>
+<details> <summary><strong>POST /CreateMany</strong></summary> <p>Inserts multiple rows into a table. Each entry in `values` is a row (list) matching `columns`.</p>
 
 ```json
 {
-  "columns": ["example_string"],
-  "table": "example_string",
-  "values": [["example"]]
+  "table": "users",
+  "columns": ["name", "email", "age"],
+  "values": [
+    ["Jane Doe", "jane@example.com", 29],
+    ["John Smith", "john@example.com", 35]
+  ]
 }
 ```
 
@@ -309,13 +344,14 @@ This allows you query tables to extract information for specific columns. With a
 
 </details>
 
-<details>
-<summary><strong>POST /DeleteMany</strong></summary>
+<details> <summary><strong>POST /DeleteRow</strong></summary> <p>Deletes a single row identified by `id` and `primary_column` from `table`.</p>
 
 ```json
 {
-  "table": "example_string",
-  "primary_key": ["example"]
+  {
+  "table": "users",
+  "id": 123,
+}
 }
 ```
 
@@ -332,8 +368,7 @@ This allows you query tables to extract information for specific columns. With a
 
 </details>
 
-<details>
-<summary><strong>POST /UpdateRow</strong></summary>
+ <details> <summary><strong>POST /DeleteByParams</strong></summary> <p>Deletes rows matching the provided conditions. Conditions should be provided in the format expected by your query builder (e.g. `"status = 'inactive'"`).</p>
 
 ```json
 {
@@ -347,8 +382,7 @@ This allows you query tables to extract information for specific columns. With a
 
 </details>
 
-<details>
-<summary><strong>POST /UpdateMany</strong></summary>
+<details> <summary><strong>POST /UpdateRow</strong></summary> <p>Updates a single row. Use `primary_column` when applicable; `set_value` is applied to `secondary_column` where `where_value` matches.</p>
 
 ```json
 {
@@ -362,32 +396,47 @@ This allows you query tables to extract information for specific columns. With a
 
 </details>
 
-<details>
-<summary><strong>POST /CreateTable</strong></summary>
+<details> <summary><strong>POST /UpdateMany</strong></summary> <p>Updates many rows using parallel `set_columns` / `set_values`. `where_column` and `where_value` determine rows to update.</p>
 
 ```json
 {
-  "table_name": "example_string",
-  "column_names_with_properties": ["example_string"]
+  "table": "users",
+  "set_columns": ["status", "updated_at"],
+  "set_values": ["active", "2024-01-01"],
+  "where_column": "country",
+  "where_value": "USA"
+}
+```
+
+<details> <summary><strong>POST /CreateTable</strong></summary> <p>Creates a new table with column definitions supplied as comma-separated property strings.</p>
+
+```json
+{
+  "table_name": "new_table",
+  "column_names_with_properties": [
+    "id SERIAL PRIMARY KEY",
+    "name VARCHAR(255) NOT NULL",
+    "email VARCHAR(255) UNIQUE",
+    "created_at TIMESTAMP DEFAULT now()"
+  ]
 }
 ```
 
 </details>
 
-<details>
-<summary><strong>POST /QueryDownload</strong></summary>
+<details> <summary><strong>POST /QueryDownload</strong></summary> <p>Run a query and email the resulting CSV/Excel file to recipients. `recipient` and `role` accept a string or an array of strings.</p>
 
 ```json
 {
-  "query": "example_string",
-  "file_name": "example_string",
-  "recipient": "example_string",
-  "sender": "example_string",
-  "password": "example_string",
-  "role": "example_string",
-  "subject": "example_string",
-  "message": "example_string",
-  "email_server": "example_string"
+  "query": "SELECT id, name, email FROM users WHERE created_at >= '2024-01-01';",
+  "file_name": "users_jan_2024.csv",
+  "recipient": ["ops@example.com"],
+  "sender": "no-reply@example.com",
+  "password": "example_password",
+  "role": ["admin"],
+  "subject": "Monthly Users Export",
+  "message": "Attached is the users export for January 2024.",
+  "email_server": "smtp.example.com"
 }
 ```
 
