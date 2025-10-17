@@ -1,4 +1,4 @@
-from redis_caching.redis_connection import redis_client
+from app.redis_caching.redis_connection import redis_client
 import json
 
 async def manage_caching(key: str, ttl: int, data):

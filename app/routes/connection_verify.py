@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from middleware.errorlogger import errorLogger
-from middleware.connection_state import get_connection
+from app.middleware.errorlogger import errorLogger
+from app.middleware.connection_state import get_connection
 from app.routes.observability import handle_logging
 
 import psycopg2

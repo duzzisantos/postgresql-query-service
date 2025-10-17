@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from typing import Literal
-from models.request_model import TableJoinModel, SubQueryExists
-from middleware.connection_state import get_connection
-from utils.request import request
-from middleware.no_injection import validate_params_against_sqli
+from app.models.request_model import TableJoinModel, SubQueryExists
+from app.middleware.connection_state import get_connection
+from app.utils.request import request
+from app.middleware.no_injection import validate_params_against_sqli
 
 joiner_router = APIRouter()
 

@@ -1,11 +1,11 @@
 from openpyxl import Workbook
 from fastapi import APIRouter, HTTPException, status
 from psycopg2 import errors
-from middleware.connection_state import get_connection
-from utils.utilities import fetch_all_as_dict
+from app.middleware.connection_state import get_connection
+from app.utils.utilities import fetch_all_as_dict
 from app.routes.observability import handle_logging
 from app.tasks.celery_app import send_weekly_query_report
-from models.request_model import QueryDownload
+from app.models.request_model import QueryDownload
 
 queried_download_router = APIRouter()
 

@@ -9,7 +9,7 @@ from app.routes.tables import table_router
 from app.routes.connection_verify import connection_verify
 from app.download_queries.queried_downloads import queried_download_router
 from app.routes.observability import log_router
-from dotenv import load_dotenv
+from dotenv.main import load_dotenv
 import uvicorn
 import os
 load_dotenv()

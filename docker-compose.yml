@@ -1,7 +1,17 @@
 services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
   web:
     build: .
     ports:
       - "${PORT:-8000}:${PORT:-8000}" # Default to 8000 if PORT is not set
     environment:
-      - DATABASE_URL=${POSTGRES_URL}
+      - POSTGRES_URL=${POSTGRES_URL}
+    depends_on:
+      - db

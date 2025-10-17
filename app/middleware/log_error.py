@@ -1,4 +1,4 @@
-from middleware.errorlogger import errorLogger
+from app.middleware.errorlogger import errorLogger
 
 def log_error(params: list[str]):
     if(len(params).__ne__(0)):

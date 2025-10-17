@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
-from utils.request import request
-from middleware.no_injection import validate_params_against_sqli
-from models.request_model import CreateTable
+from app.utils.request import request
+from app.middleware.no_injection import validate_params_against_sqli
+from app.models.request_model import CreateTable
 
 table_router = APIRouter()
 CACHE_TIME = int(1200)

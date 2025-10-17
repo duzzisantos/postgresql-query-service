@@ -1,5 +1,4 @@
-from utils.email_template import dispatch_email
-from pydantic import BaseModel
+from app.utils.email_template import dispatch_email
 from typing import Any
 
 class SendQueryFileToEmail:

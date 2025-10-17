@@ -1,5 +1,5 @@
-from middleware.validate_params import validateParams
-from middleware.no_injection import is_potential_sqli, validate_params_against_sqli
+from app.middleware.validate_params import validateParams
+from app.middleware.no_injection import is_potential_sqli, validate_params_against_sqli
 from fastapi import HTTPException
 
 def errorLogger(params):

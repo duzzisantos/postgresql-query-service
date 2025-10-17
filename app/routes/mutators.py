@@ -1,11 +1,11 @@
 from fastapi import APIRouter, status, HTTPException
-from models.request_model import CreateRow, CreateMany, DeleteRow, DeleteMany, DeleteByParams, UpdateMany, UpdateRow
-from middleware.connection_state import get_connection
-from utils.utilities import fetch_all_as_dict, set_items
+from app.models.request_model import CreateRow, CreateMany, DeleteRow, DeleteMany, DeleteByParams, UpdateMany, UpdateRow
+from app.middleware.connection_state import get_connection
+from app.utils.utilities import fetch_all_as_dict, set_items
 from app.routes.observability import handle_logging
-from utils.request import request
+from app.utils.request import request
 from datetime import date
-from middleware.no_injection import validate_params_against_sqli
+from app.middleware.no_injection import validate_params_against_sqli
 
 mutator_router = APIRouter()
 cursor = get_connection().cursor()

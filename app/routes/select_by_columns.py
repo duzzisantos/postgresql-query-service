@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
-from models.request_model import ByColumns, ByColumnsAndLimit, ByColumnsAndOrder
-from utils.request import request
-from middleware.no_injection import validate_params_against_sqli
+from app.models.request_model import ByColumns, ByColumnsAndLimit, ByColumnsAndOrder
+from app.utils.request import request
+from app.middleware.no_injection import validate_params_against_sqli
 from psycopg2 import sql
 
 select_by_column_router = APIRouter()

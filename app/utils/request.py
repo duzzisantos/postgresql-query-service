@@ -1,7 +1,7 @@
-from middleware.connection_state import get_connection
+from app.middleware.connection_state import get_connection
 from fastapi import HTTPException, status
 from psycopg2 import errors
-from utils.utilities import fetch_all_as_dict
+from app.utils.utilities import fetch_all_as_dict
 from app.routes.observability import handle_logging
 
 async def request(query_template: str, variables: tuple[str | int | bool | tuple | list[str]]):

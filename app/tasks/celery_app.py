@@ -2,8 +2,8 @@ from celery import Celery
 from celery.schedules import crontab
 import pandas as pd
 from io import BytesIO
-from models.emailing_model import SendQueryFileToEmail
-from models.email_properties import EmailProperties
+from app.models.emailing_model import SendQueryFileToEmail
+from app.models.email_properties import EmailProperties
 
 
 celery_app = Celery()
