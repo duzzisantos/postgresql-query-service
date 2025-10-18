@@ -408,6 +408,8 @@ Conditions are parameters plugged into to query's WHERE clauses. Additionally, y
 }
 ```
 
+</details>
+
 <details> <summary><strong>POST /CreateTable</strong></summary> <p>Creates a new table with column definitions supplied as comma-separated property strings.</p>
 
 ```json
@@ -444,11 +446,12 @@ Conditions are parameters plugged into to query's WHERE clauses. Additionally, y
 
 <details>
 <summary><strong>SQLi Considerations</strong></summary>
-<section>Query Builders might be susceptible to SQL injections, and to combat this, an SQLi validator is
+
+<p>Query Builders might be susceptible to SQL injections, and to combat this, an SQLi validator is
 called at the top level of every route to track if failing the rules of parameterized queries. Normally,
 you should try to prevent using various dangerous PostgreSQL statements which are set aside to trigger 
 query failure from the onset within any given route. This error is sent to either your logger or HTTP Response.
-</section>
+</p>
 
 <p>1. Define SQLi patterns you would like to catch: </p>
 
@@ -506,3 +509,22 @@ async def validate_params_against_sqli(params: dict):
 ```
 
 </details>
+
+<details>
+<summary><strong>Error Handling Considerations</strong></summary>
+
+<p>Error is handled during validations and requests considering the following types of errors
+from psycopg2: </p>
+
+- Syntax error
+- Connection error
+- Undefined table
+- Duplicate table
+- Unique Violation
+- Internal error
+
+<p>Two-pronged approaches to communicating error involve: </p>
+
+- Logging them via loguru, from where data could be further extracted to other observability services
+- Sending appropriate HTTP response status and accompanying message.
+</p>
