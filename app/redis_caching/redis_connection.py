@@ -1,13 +1,16 @@
-import redis.asyncio as redis
-import os
-from dotenv.main import load_dotenv
+import redis.asyncio as aioredis
+from app.core.config import settings
 
-load_dotenv()
+_client = None
 
-redis_client = redis.Redis(
-      host=str(os.getenv("REDIS_CLIENT_URL")), 
-      port=os.getenv("REDIS_PORT"),
-      db=0,
-      decode_responses=os.getenv("REDIS_DECODE_RESPONSES")
-)
 
+def get_redis_client():
+    global _client
+    if _client is None:
+        _client = aioredis.Redis(
+            host=settings.REDIS_CLIENT_URL,
+            port=settings.REDIS_PORT,
+            db=0,
+            decode_responses=settings.REDIS_DECODE_RESPONSES,
+        )
+    return _client

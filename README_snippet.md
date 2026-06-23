@@ -1,4 +1,4 @@
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /GetAll</strong></summary>
 
 ```json
@@ -9,7 +9,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /OrderBy</strong></summary>
 
 ```json
@@ -20,7 +20,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /LimitAndOffset</strong></summary>
 
 ```json
@@ -32,7 +32,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /WithLimit</strong></summary>
 
 ```json
@@ -43,7 +43,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /AllWhere</strong></summary>
 
 ```json
@@ -56,7 +56,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /AllWhereOrderBy</strong></summary>
 
 ```json
@@ -67,7 +67,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /AllBetween</strong></summary>
 
 ```json
@@ -80,7 +80,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /AllWhereMatches</strong></summary>
 
 ```json
@@ -92,7 +92,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /AllWhereIn</strong></summary>
 
 ```json
@@ -106,7 +106,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /AllWhereAndCount</strong></summary>
 
 ```json
@@ -119,7 +119,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /AllWhereAverageModel</strong></summary>
 
 ```json
@@ -128,7 +128,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /AllGroupByModel</strong></summary>
 
 ```json
@@ -140,7 +140,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /ByColumns</strong></summary>
 
 ```json
@@ -153,7 +153,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /ByColumnsAndOrder</strong></summary>
 
 ```json
@@ -164,7 +164,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /ByColumnsAndLimit</strong></summary>
 
 ```json
@@ -175,7 +175,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /TableJoinModel</strong></summary>
 
 ```json
@@ -191,7 +191,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /SubQueryExists</strong></summary>
 
 ```json
@@ -207,7 +207,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /CreateRow</strong></summary>
 
 ```json
@@ -224,7 +224,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /CreateMany</strong></summary>
 
 ```json
@@ -243,7 +243,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /DeleteRow</strong></summary>
 
 ```json
@@ -256,7 +256,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /DeleteMany</strong></summary>
 
 ```json
@@ -270,7 +270,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /DeleteByParams</strong></summary>
 
 ```json
@@ -283,7 +283,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /UpdateRow</strong></summary>
 
 ```json
@@ -298,7 +298,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /UpdateMany</strong></summary>
 
 ```json
@@ -317,7 +317,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /CreateTable</strong></summary>
 
 ```json
@@ -331,7 +331,7 @@
 
 </details>
 
-<details>
+<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >
 <summary><strong>POST /QueryDownload</strong></summary>
 
 ```json
@@ -344,7 +344,9 @@
   "role": "example_string",
   "subject": "example_string",
   "message": "example_string",
-  "email_server": "example_string"
+  "email_server": "example_string",
+  "email_port": 123,
+  "use_tls": true
 }
 ```
 

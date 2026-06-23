@@ -1,35 +1,41 @@
-from fastapi import APIRouter, status
-from app.models.request_model import ByColumns, ByColumnsAndLimit, ByColumnsAndOrder
-from app.utils.request import request
-from app.middleware.no_injection import validate_params_against_sqli
+from fastapi import APIRouter, status, Depends
 from psycopg2 import sql
+from app.models.request_model import ByColumns, ByColumnsAndLimit, ByColumnsAndOrder
+from app.middleware.no_injection import validate_params_against_sqli, validate_identifier, validate_identifier_list
+from app.middleware.auth import require_api_key
+from app.utils.request import request
 
-select_by_column_router = APIRouter()
-CACHE_TIME = int(1200)
+select_by_column_router = APIRouter(dependencies=[Depends(require_api_key)])
 
 
-@select_by_column_router.post("/GetByColumns", status_code=status.HTTP_200_OK) ##ça marche
+@select_by_column_router.post("/GetByColumns", status_code=status.HTTP_200_OK)
 async def getByColumns(model: ByColumns):
     await validate_params_against_sqli(dict(model))
-    comma_separated_columns = ", ".join(model.columns)
-    res = await request(f"SELECT {comma_separated_columns} FROM {model.table}", (comma_separated_columns, model.table))
-    return res
-    
+    validate_identifier(model.table, "table")
+    validate_identifier_list(model.columns)
+    cols = sql.SQL(", ").join(sql.Identifier(c) for c in model.columns)
+    query = sql.SQL("SELECT {} FROM {}").format(cols, sql.Identifier(model.table))
+    return await request(query)
 
-@select_by_column_router.post("/GetByColumnsAndOrderBy", status_code=status.HTTP_200_OK) ##ça marche
+
+@select_by_column_router.post("/GetByColumnsAndOrderBy", status_code=status.HTTP_200_OK)
 async def getByColumnsOrderBy(model: ByColumnsAndOrder):
     await validate_params_against_sqli(dict(model))
-    multi_cols = ", ".join(model.columns)
-    res = await request(f"SELECT {multi_cols} FROM {model.table} ORDER BY {model.order}", (multi_cols, model.table, model.order))
-    return res
-  
+    validate_identifier(model.table, "table")
+    validate_identifier_list(model.columns)
+    validate_identifier(model.order, "order column")
+    cols = sql.SQL(", ").join(sql.Identifier(c) for c in model.columns)
+    query = sql.SQL("SELECT {} FROM {} ORDER BY {}").format(
+        cols, sql.Identifier(model.table), sql.Identifier(model.order),
+    )
+    return await request(query)
 
 
-@select_by_column_router.post("/GetByColumnsAndLimit", status_code=status.HTTP_200_OK) ##ça marche
+@select_by_column_router.post("/GetByColumnsAndLimit", status_code=status.HTTP_200_OK)
 async def getByColumnsAndLimit(model: ByColumnsAndLimit):
     await validate_params_against_sqli(dict(model))
-    multi_cols = ", ".join(model.columns)
-    res = await request(f"SELECT {multi_cols} FROM {model.table} LIMIT {model.limit}", (multi_cols, model.table, model.limit))
-    return res
-  
-        
+    validate_identifier(model.table, "table")
+    validate_identifier_list(model.columns)
+    cols = sql.SQL(", ").join(sql.Identifier(c) for c in model.columns)
+    query = sql.SQL("SELECT {} FROM {} LIMIT %s").format(cols, sql.Identifier(model.table))
+    return await request(query, (model.limit,))

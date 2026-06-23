@@ -1,29 +1,24 @@
 from fastapi import APIRouter, HTTPException
-from app.middleware.errorlogger import errorLogger
-from app.middleware.connection_state import get_connection
+from app.middleware.connection_state import get_connection, release_connection
 from app.routes.observability import handle_logging
-
 import psycopg2
 
 connection_verify = APIRouter()
+
+
 @connection_verify.post("/Connection")
 async def checkConnection():
-   
+    conn = None
     try:
-        cursor = get_connection().cursor()
-        with cursor as cur:
-            cur.execute("SELECT 1;")
-            result = cur.fetchone()
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1;")
+        result = cursor.fetchone()
+        cursor.close()
 
-            data = {
-            "status": "OK",
-            "message": "Connection established.",
-            "test_query_result": result,
-           }
-            
-            await handle_logging("success", data)
-            return data
-
+        data = {"status": "OK", "message": "Connection established.", "test_query_result": result}
+        await handle_logging("success", data)
+        return data
 
     except psycopg2.OperationalError:
         await handle_logging("error", "Failed to connect to database. Check credentials")
@@ -31,6 +26,6 @@ async def checkConnection():
     except Exception:
         await handle_logging("error", "Unexpected error occurred.")
         raise HTTPException(status_code=500, detail="Unexpected error occurred.")
-    
-
-
+    finally:
+        if conn:
+            release_connection(conn)

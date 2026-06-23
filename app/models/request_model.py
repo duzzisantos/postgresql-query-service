@@ -114,14 +114,16 @@ class CreateTable(BaseModel):
 
 class QueryDownload(BaseModel):
     query: str
-    file_name: str
-    recipient: Optional[str | list[str]]
-    sender: str
-    password: str
-    role: Optional[str | list[str]]
-    subject: str
-    message: str
-    email_server: str
+    file_name: str = "report.xlsx"
+    recipient: Optional[str | list[str]] = None
+    sender: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str | list[str]] = None
+    subject: str = "Query Report"
+    message: str = "Please find the attached report."
+    email_server: Optional[str] = None
+    email_port: Optional[int] = None
+    use_tls: Optional[bool] = None
 
 
 def get_example_value(field_type):

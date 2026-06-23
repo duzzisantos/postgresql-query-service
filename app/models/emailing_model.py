@@ -1,8 +1,11 @@
 from app.utils.email_template import dispatch_email
-from typing import Any
+from io import BytesIO
+
 
 class SendQueryFileToEmail:
-    def __init__(self, recipient, sender, password, role, subject, message, email_server, attachment):
+    def __init__(self, recipient, sender, password, role, subject, message,
+                 email_server=None, email_port=None, use_tls=None,
+                 attachment: BytesIO = None, attachment_filename: str = "report.xlsx"):
         self.recipient = recipient
         self.sender = sender
         self.password = password
@@ -10,25 +13,34 @@ class SendQueryFileToEmail:
         self.subject = subject
         self.message = message
         self.email_server = email_server
-        self.attachment= attachment
+        self.email_port = email_port
+        self.use_tls = use_tls
+        self.attachment = attachment
+        self.attachment_filename = attachment_filename
 
-    def validate_email_content(self):
-            if(self.role.__eq__("")):
-                return {"Message": "You must specify user role", "Status": False}
-            elif(self.recipient.__eq__("") or self.sender.__eq__("") or self.password.__eq__("") or self.message.__eq__("") or 
-                                                                                self.role.__eq__("") or  self.subject.__eq__("") or self.email_server.__eq__("") ):
-                return {"Message": "All email content must be fully provided", "Status": False}
-            else:
-                return {"Message": "Successful validation", "Status": True}
+    def validate(self) -> dict:
+        if not self.recipient:
+            return {"Message": "Recipient is required", "Status": False}
+        if not self.subject or not self.message:
+            return {"Message": "Subject and message body are required", "Status": False}
+        return {"Message": "Validation passed", "Status": True}
 
+    def send(self):
+        """Synchronous send — safe to call from Celery tasks."""
+        validation = self.validate()
+        if not validation["Status"]:
+            return validation
 
-     
-    async def send_to_recipients(self):
-            validate = self.validate_email_content()
-            if validate["Status"] == True:
-                 return await dispatch_email(self.email_server, self.subject, self.message, self.sender, self.recipient, self.password, self.attachment)
-            else:
-                 return validate
-
-    ## Add any other email template
-
+        dispatch_email(
+            subject=self.subject,
+            body=self.message,
+            sender_email=self.sender,
+            receiver_email=self.recipient,
+            password=self.password,
+            attachment=self.attachment,
+            attachment_filename=self.attachment_filename,
+            mail_server=self.email_server,
+            mail_port=self.email_port,
+            use_tls=self.use_tls,
+        )
+        return {"Message": "Email sent successfully", "Status": True}

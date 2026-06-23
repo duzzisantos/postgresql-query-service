@@ -1,16 +1,8 @@
-def validateParams(params: str | int | list[str]) -> dict:
-    if (params.__eq__("")):
-        return {"message": f"Validation failed! {params} returned an empty string", "result": False}
-    elif(len(params) == 0):
-         return {"message": f"Validation failed {params} returned an empty array of strings", "result": False}
-    elif(not params):
-         return {"message": f"Validation failed {params} returned no integer", "result": False}
-    else:
-         return {"message": f"Validation succeeded {params} successfully validated", "result": True}
-    
-
-
-def validateConnectionParams(dbname: str, user: str, password: str, host: str, port: str) -> dict | bool:
-     if(dbname.__ne__("") and user.__ne__("") and password.__ne__("") and host.__ne__("") and port.__ne__("") and len(int(port)) == 4):
-          return True
-     return {"message": f"Connection parameters were missing.", "result": False}
+def validate_params(params) -> dict:
+    if isinstance(params, str) and params == "":
+        return {"message": "Validation failed: empty string", "result": False}
+    if isinstance(params, (list, tuple)) and len(params) == 0:
+        return {"message": "Validation failed: empty list", "result": False}
+    if params is None:
+        return {"message": "Validation failed: None value", "result": False}
+    return {"message": "Validation passed", "result": True}

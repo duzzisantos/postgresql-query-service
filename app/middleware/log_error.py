@@ -1,8 +1,7 @@
-from app.middleware.errorlogger import errorLogger
+from app.middleware.errorlogger import error_logger
 
-def log_error(params: list[str]):
-    if(len(params).__ne__(0)):
-       for param in params:
-           return errorLogger(param)
-    else:
-        return
+
+def log_error(params: list[dict]):
+    for param in params:
+        if param:
+            error_logger(param)
