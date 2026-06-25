@@ -32,7 +32,6 @@ pandas==2.3.3
 prometheus-fastapi-instrumentator==7.1.0
 prometheus_client==0.23.1
 prompt_toolkit==3.0.52
-psycopg2==2.9.11
 psycopg2-binary==2.9.10
 pydantic==2.11.4
 pydantic_core==2.33.2
