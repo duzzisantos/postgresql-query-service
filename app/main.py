@@ -27,11 +27,9 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="PostgreSQL Query Service", version="2.0.0", lifespan=lifespan)
 
-origins = [o for o in [settings.LOCALHOST, settings.WEBHOST] if o]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins or ["*"],
+    allow_origins=settings.cors_origins or ["*"],
     allow_credentials=True,
     allow_methods=["POST", "GET", "OPTIONS"],
     allow_headers=["Content-Type", "X-API-Key", "X-Unlock-Key"],
