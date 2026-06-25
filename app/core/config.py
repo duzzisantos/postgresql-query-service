@@ -9,21 +9,28 @@ class Settings:
     PORT: int = int(os.getenv("PORT", "8000"))
     WEBHOST: str = os.getenv("WEBHOST", "")
 
+    ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")
+
     @property
     def cors_origins(self) -> list[str]:
         origins = []
-        for val in [self.LOCALHOST, self.WEBHOST]:
+        for val in [self.LOCALHOST, self.WEBHOST, *self.ALLOWED_ORIGINS.split(",")]:
+            val = val.strip()
             if not val:
                 continue
+            val = val.rstrip("/")
             if not val.startswith("http"):
                 val = f"https://{val}"
             origins.append(val)
         return origins
+
     POSTGRES_URL: str = os.getenv("POSTGRES_URL", "")
 
     REDIS_CLIENT_URL: str = os.getenv("REDIS_CLIENT_URL", "localhost")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
-    REDIS_DECODE_RESPONSES: bool = os.getenv("REDIS_DECODE_RESPONSES", "True").lower() == "true"
+    REDIS_DECODE_RESPONSES: bool = (
+        os.getenv("REDIS_DECODE_RESPONSES", "True").lower() == "true"
+    )
 
     # Auth
     API_KEY: str = os.getenv("API_KEY", "")
