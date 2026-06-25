@@ -5,7 +5,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.config import settings
 from app.middleware.rate_limiter import RateLimiterMiddleware
 from app.middleware.request_context import set_request_context
-from app.routes.observability import ensure_observability_table
 from app.routes.joiners import joiner_router
 from app.routes.mutators import mutator_router
 from app.routes.select_all import select_all_router
@@ -18,10 +17,6 @@ from app.routes.observability import log_router
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    try:
-        ensure_observability_table()
-    except Exception:
-        pass
     yield
 
 

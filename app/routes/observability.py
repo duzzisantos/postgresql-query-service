@@ -19,17 +19,23 @@ OBSERVABILITY_SCHEMA = [
 
 SORTABLE_COLUMNS = {"id", "http_status", "log_type", "endpoint", "source_ip", "destination_ip", "message", "created_at"}
 
+_table_created = False
 
-def ensure_observability_table():
+
+def _ensure_table():
+    global _table_created
+    if _table_created:
+        return
     conn = get_connection()
     cursor = conn.cursor()
     try:
         col_defs = ", ".join(OBSERVABILITY_SCHEMA)
         cursor.execute(f"CREATE TABLE IF NOT EXISTS observability_logs ({col_defs})")
         conn.commit()
+        _table_created = True
     except Exception as e:
         conn.rollback()
-        logger.error(f"Failed to create observability_logs table: {e}")
+        logger.warning(f"Failed to create observability_logs table: {e}")
     finally:
         cursor.close()
         release_connection(conn)
@@ -44,28 +50,30 @@ async def handle_logging(
     destination_ip: str = "",
 ):
     if log_type == "error" or log_type == "sql_error":
-        logger.add(sys.stderr, format="{level} : {time} : {message}: {process}")
         logger.error(message)
     else:
-        logger.add(sys.stdout, format="{level} : {time} : {message}: {process}")
         logger.success(message)
 
-    conn = get_connection()
-    cursor = conn.cursor()
     try:
-        cursor.execute(
-            """INSERT INTO observability_logs
-               (http_status, log_type, endpoint, source_ip, destination_ip, message)
-               VALUES (%s, %s, %s, %s, %s, %s)""",
-            (http_status, log_type, endpoint, source_ip, destination_ip, str(message)),
-        )
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        logger.warning(f"Failed to persist log: {e}")
-    finally:
-        cursor.close()
-        release_connection(conn)
+        _ensure_table()
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """INSERT INTO observability_logs
+                   (http_status, log_type, endpoint, source_ip, destination_ip, message)
+                   VALUES (%s, %s, %s, %s, %s, %s)""",
+                (http_status, log_type, endpoint, source_ip, destination_ip, str(message)),
+            )
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            logger.warning(f"Failed to persist log: {e}")
+        finally:
+            cursor.close()
+            release_connection(conn)
+    except Exception:
+        pass
 
 
 @log_router.get("/GetLogs", status_code=status.HTTP_200_OK)

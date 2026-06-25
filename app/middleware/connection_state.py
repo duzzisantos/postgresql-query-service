@@ -1,14 +1,21 @@
 from psycopg2 import pool
 from app.core.config import settings
 
-# Connection pool — reuses connections instead of opening one per request
 _pool = None
+
+
+def _get_dsn():
+    dsn = settings.POSTGRES_URL
+    if dsn and "connect_timeout" not in dsn:
+        sep = "&" if "?" in dsn else "?"
+        dsn = f"{dsn}{sep}connect_timeout=10"
+    return dsn
 
 
 def _get_pool():
     global _pool
     if _pool is None or _pool.closed:
-        _pool = pool.ThreadedConnectionPool(minconn=2, maxconn=10, dsn=settings.POSTGRES_URL)
+        _pool = pool.ThreadedConnectionPool(minconn=1, maxconn=10, dsn=_get_dsn())
     return _pool
 
 
