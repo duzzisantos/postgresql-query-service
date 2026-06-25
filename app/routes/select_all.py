@@ -2,11 +2,23 @@ import re
 from fastapi import APIRouter, status, HTTPException, Depends
 from psycopg2 import sql
 from app.models.request_model import (
-    GetAll, OrderBy, LimitAndOffset, WithLimit, AllWhere, AllBetween,
-    AllGroupByModel, AllWhereIn, AllWhereAverageModel, AllWhereAndCount,
-    AllWhereMatches, AllWhereOrderBy,
+    GetAll,
+    OrderBy,
+    LimitAndOffset,
+    WithLimit,
+    AllWhere,
+    AllBetween,
+    AllGroupByModel,
+    AllWhereIn,
+    AllWhereAverageModel,
+    AllWhereAndCount,
+    AllWhereMatches,
+    AllWhereOrderBy,
 )
-from app.middleware.no_injection import validate_params_against_sqli, validate_identifier
+from app.middleware.no_injection import (
+    validate_params_against_sqli,
+    validate_identifier,
+)
 from app.middleware.auth import require_api_key
 from app.utils.request import request
 from app.redis_caching.manage_caching import manage_caching
@@ -20,7 +32,9 @@ async def getAll(model: GetAll):
     await validate_params_against_sqli(dict(model))
     validate_identifier(model.table, "table")
     query = sql.SQL("SELECT * FROM {}").format(sql.Identifier(model.table))
-    return await manage_caching(f"getall:{model.table}", CACHE_TTL, lambda: request(query))
+    return await manage_caching(
+        f"getall:{model.table}", CACHE_TTL, lambda: request(query)
+    )
 
 
 @select_all_router.post("/GetAllOrderBy", status_code=status.HTTP_200_OK)
@@ -29,7 +43,8 @@ async def getAllOrderBy(model: OrderBy):
     validate_identifier(model.table, "table")
     validate_identifier(model.order, "order column")
     query = sql.SQL("SELECT * FROM {} ORDER BY {}").format(
-        sql.Identifier(model.table), sql.Identifier(model.order),
+        sql.Identifier(model.table),
+        sql.Identifier(model.order),
     )
     return await request(query)
 
@@ -38,7 +53,9 @@ async def getAllOrderBy(model: OrderBy):
 async def getAllWithLimitAndOffset(model: LimitAndOffset):
     await validate_params_against_sqli(dict(model))
     validate_identifier(model.table, "table")
-    query = sql.SQL("SELECT * FROM {} LIMIT %s OFFSET %s").format(sql.Identifier(model.table))
+    query = sql.SQL("SELECT * FROM {} LIMIT %s OFFSET %s").format(
+        sql.Identifier(model.table)
+    )
     return await request(query, (model.limit, model.offset))
 
 
@@ -63,7 +80,9 @@ async def getAllWhereAndOrderBy(model: AllWhereOrderBy):
     await validate_params_against_sqli(dict(model))
     validate_identifier(model.table, "table")
     validate_identifier(model.order, "order column")
-    query, params = _build_where_query(model.table, model.conditions, order_by=model.order)
+    query, params = _build_where_query(
+        model.table, model.conditions, order_by=model.order
+    )
     return await request(query, params)
 
 
@@ -73,7 +92,8 @@ async def getAllBetween(model: AllBetween):
     validate_identifier(model.table, "table")
     validate_identifier(model.column, "column")
     query = sql.SQL("SELECT * FROM {} WHERE {} BETWEEN %s AND %s").format(
-        sql.Identifier(model.table), sql.Identifier(model.column),
+        sql.Identifier(model.table),
+        sql.Identifier(model.column),
     )
     return await request(query, (str(model.start), str(model.end)))
 
@@ -84,7 +104,8 @@ async def getAllWhereMatches(model: AllWhereMatches):
     validate_identifier(model.table, "table")
     validate_identifier(model.column, "column")
     query = sql.SQL("SELECT * FROM {} WHERE {} LIKE %s").format(
-        sql.Identifier(model.table), sql.Identifier(model.column),
+        sql.Identifier(model.table),
+        sql.Identifier(model.column),
     )
     return await request(query, (str(model.wild_card),))
 
@@ -94,10 +115,16 @@ async def getAllWhereIn(model: AllWhereIn):
     await validate_params_against_sqli(dict(model))
     validate_identifier(model.table, "table")
     validate_identifier(model.column, "column")
-    items = model.search_parameters if isinstance(model.search_parameters, list) else [model.search_parameters]
+    items = (
+        model.search_parameters
+        if isinstance(model.search_parameters, list)
+        else [model.search_parameters]
+    )
     placeholders = sql.SQL(", ").join([sql.Placeholder()] * len(items))
     query = sql.SQL("SELECT * FROM {} WHERE {} IN ({})").format(
-        sql.Identifier(model.table), sql.Identifier(model.column), placeholders,
+        sql.Identifier(model.table),
+        sql.Identifier(model.column),
+        placeholders,
     )
     return await request(query, tuple(str(i) for i in items))
 
@@ -109,7 +136,9 @@ async def getAllWhereAndCount(model: AllWhereAndCount):
     validate_identifier(model.primary_column, "primary column")
     validate_identifier(model.secondary_column, "secondary column")
     query = sql.SQL("SELECT COUNT({}) FROM {} WHERE {} = %s").format(
-        sql.Identifier(model.primary_column), sql.Identifier(model.table), sql.Identifier(model.secondary_column),
+        sql.Identifier(model.primary_column),
+        sql.Identifier(model.table),
+        sql.Identifier(model.secondary_column),
     )
     return await request(query, (model.search_parameter,))
 
@@ -120,7 +149,8 @@ async def getAllWhereAndAverage(model: AllWhereAverageModel):
     validate_identifier(model.table, "table")
     validate_identifier(model.column, "column")
     query = sql.SQL("SELECT AVG({})::NUMERIC(10,2) FROM {}").format(
-        sql.Identifier(model.column), sql.Identifier(model.table),
+        sql.Identifier(model.column),
+        sql.Identifier(model.table),
     )
     return await request(query)
 
@@ -132,14 +162,15 @@ async def getAllWhereAndGroupBy(model: AllGroupByModel):
     validate_identifier(model.primary_column, "primary column")
     validate_identifier(model.secondary_column, "secondary column")
     query = sql.SQL("SELECT {}, COUNT({}) FROM {} GROUP BY {}").format(
-        sql.Identifier(model.secondary_column), sql.Identifier(model.primary_column),
-        sql.Identifier(model.table), sql.Identifier(model.secondary_column),
+        sql.Identifier(model.secondary_column),
+        sql.Identifier(model.primary_column),
+        sql.Identifier(model.table),
+        sql.Identifier(model.secondary_column),
     )
     return await request(query)
 
 
-# ── WHERE clause builder ──────────────────────────────────────────
-
+## Where clause builder
 _COND_PATTERN = re.compile(r"^(\w+)\s*(=|!=|<>|>=|<=|>|<)\s*(.+)$")
 
 
@@ -151,7 +182,10 @@ def _build_where_query(table: str, conditions: list[str], order_by: str = None):
     for cond in conditions:
         m = _COND_PATTERN.match(cond.strip())
         if not m:
-            raise HTTPException(status_code=422, detail=f"Invalid condition: '{cond}'. Expected 'column operator value'.")
+            raise HTTPException(
+                status_code=422,
+                detail=f"Invalid condition: '{cond}'. Expected 'column operator value'.",
+            )
         col, op, val = m.group(1), m.group(2), m.group(3).strip().strip("'\"")
         validate_identifier(col, "condition column")
         # Operator is matched by regex — only =, !=, <>, >, <, >=, <= are possible
@@ -162,9 +196,13 @@ def _build_where_query(table: str, conditions: list[str], order_by: str = None):
 
     if order_by:
         query = sql.SQL("SELECT * FROM {} WHERE {} ORDER BY {}").format(
-            sql.Identifier(table), where_clause, sql.Identifier(order_by),
+            sql.Identifier(table),
+            where_clause,
+            sql.Identifier(order_by),
         )
     else:
-        query = sql.SQL("SELECT * FROM {} WHERE {}").format(sql.Identifier(table), where_clause)
+        query = sql.SQL("SELECT * FROM {} WHERE {}").format(
+            sql.Identifier(table), where_clause
+        )
 
     return query, tuple(params)

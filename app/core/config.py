@@ -16,7 +16,7 @@ class Settings:
 
     # Auth
     API_KEY: str = os.getenv("API_KEY", "")
-    CSRF_SECRET: str = os.getenv("CSRF_SECRET", os.urandom(32).hex())
+    UNLOCK_KEY: str = os.getenv("UNLOCK_KEY", "")
 
     # Email (SMTP)
     SMTP_HOST: str = os.getenv("SMTP_HOST", "")

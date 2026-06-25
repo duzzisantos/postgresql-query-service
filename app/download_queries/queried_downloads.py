@@ -13,20 +13,29 @@ queried_download_router = APIRouter(dependencies=[Depends(require_api_key)])
 
 @queried_download_router.post("/GetQueriedDownload", status_code=status.HTTP_200_OK)
 async def get_queried_download(model: QueryDownload):
-    """
-    Run a safe SELECT query, convert results to Excel, and email it via Celery.
-    The raw query field is intentionally restricted to SELECT-only to prevent
-    arbitrary DML/DDL through this endpoint.
-    """
+
     stripped = model.query.strip().rstrip(";").strip()
     if not stripped.upper().startswith("SELECT"):
-        raise HTTPException(status_code=422, detail="Only SELECT queries are allowed for download.")
+        raise HTTPException(
+            status_code=422, detail="Only SELECT queries are allowed for download."
+        )
 
     # Block dangerous keywords that shouldn't appear in a download query
     upper = stripped.upper()
-    for forbidden in ("DROP", "DELETE", "INSERT", "UPDATE", "ALTER", "TRUNCATE", "EXEC", "CREATE"):
+    for forbidden in (
+        "DROP",
+        "DELETE",
+        "INSERT",
+        "UPDATE",
+        "ALTER",
+        "TRUNCATE",
+        "EXEC",
+        "CREATE",
+    ):
         if forbidden in upper:
-            raise HTTPException(status_code=422, detail=f"Forbidden keyword '{forbidden}' in query.")
+            raise HTTPException(
+                status_code=422, detail=f"Forbidden keyword '{forbidden}' in query."
+            )
 
     conn = None
     try:
@@ -55,7 +64,10 @@ async def get_queried_download(model: QueryDownload):
         )
 
         await handle_logging("success", "Query download queued for email dispatch")
-        return {"status": "queued", "message": "Report is being generated and will be emailed shortly."}
+        return {
+            "status": "queued",
+            "message": "Report is being generated and will be emailed shortly.",
+        }
 
     except errors.SyntaxError:
         await handle_logging("error", "Query Syntax Error For Downloading Occurred")
