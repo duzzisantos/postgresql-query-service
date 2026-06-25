@@ -1,8 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional, Union
+from typing import Optional
 from datetime import date
-import json
-import inspect
 
 
 class GetAll(BaseModel):
@@ -151,58 +149,3 @@ class QueryDownload(BaseModel):
     use_tls: Optional[bool] = None
 
 
-def get_example_value(field_type):
-    origin = getattr(field_type, "__origin__", None)
-    if origin is Union:
-        for arg in field_type.__args__:
-            if arg != type(None):
-                return get_example_value(arg)
-    elif origin is list:
-        sub_type = field_type.__args__[0]
-        return [get_example_value(sub_type)]
-    elif field_type == str:
-        return "example_string"
-    elif field_type == int:
-        return 123
-    elif field_type == bool:
-        return True
-    elif field_type == date:
-        return "2023-01-01"
-    return "example"
-
-
-# Collect all BaseModel subclasses
-models = [
-    obj
-    for name, obj in globals().items()
-    if inspect.isclass(obj)
-    and issubclass(obj, BaseModel)
-    and obj.__name__ != "BaseModel"
-]
-
-# Build Markdown blocks
-markdown_blocks = []
-for model in models:
-    class_name = model.__name__
-    route = f"/{class_name}"  # PascalCase route
-    example = {}
-    for field_name, field in model.__annotations__.items():
-        example[field_name] = get_example_value(field)
-    json_body = json.dumps(example, indent=2)
-
-    block = (
-        f"<details style='width:100%; background-color:whitesmoke; top:10px; right:10px; left:10px; bottom:10px' >\n"
-        f"<summary><strong>POST {route}</strong></summary>\n\n"
-        f"```json\n"
-        f"{json_body}\n"
-        f"```\n\n"
-        f"</details>\n"
-    )
-
-    markdown_blocks.append(block)
-
-# Output to file
-with open("README_snippet.md", "w") as f:
-    f.write("\n".join(markdown_blocks))
-
-print("Markdown saved to README_snippet.md")

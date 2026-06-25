@@ -14,7 +14,6 @@ from app.routes.tables import table_router
 from app.routes.connection_verify import connection_verify
 from app.download_queries.queried_downloads import queried_download_router
 from app.routes.observability import log_router
-import uvicorn
 
 
 @asynccontextmanager
@@ -47,6 +46,9 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         dest_ip = settings.LOCALHOST
         set_request_context(source_ip, endpoint, dest_ip)
         return await call_next(request)
+
+
+app.add_middleware(RequestContextMiddleware)
 
 
 @app.get("/")
