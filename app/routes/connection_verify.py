@@ -18,15 +18,31 @@ async def checkConnection():
         result = cursor.fetchone()
         cursor.close()
 
-        data = {"status": "OK", "message": "Connection established.", "test_query_result": result}
-        await handle_logging("success", "Connection established", http_status=200, **ctx)
+        data = {
+            "status": "OK",
+            "message": "Connection established.",
+            "test_query_result": result,
+        }
+        await handle_logging(
+            "success", "Connection established", http_status=200, **ctx
+        )
         return data
 
     except psycopg2.OperationalError:
-        await handle_logging("error", "Failed to connect to database. Check credentials", http_status=400, **ctx)
-        raise HTTPException(status_code=400, detail="Failed to connect to database. Check credentials.")
+        await handle_logging(
+            "error",
+            "Failed to connect to database. Check credentials",
+            http_status=400,
+            **ctx,
+        )
+        raise HTTPException(
+            status_code=400,
+            detail=f"Connection state: {conn.__getstate__()}. Details Failed to connect to database. Check credentials",
+        )
     except Exception:
-        await handle_logging("error", "Unexpected error occurred", http_status=500, **ctx)
+        await handle_logging(
+            "error", "Unexpected error occurred", http_status=500, **ctx
+        )
         raise HTTPException(status_code=500, detail="Unexpected error occurred.")
     finally:
         if conn:
