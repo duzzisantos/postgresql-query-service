@@ -176,23 +176,19 @@ docker compose up --build
 # → PostgreSQL on localhost:5432
 ```
 
-### Production (Railway)
-
-Set these environment variables in your Railway dashboard:
+### Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ENVIRONMENT` | Yes | Set to `production` |
+| `ENVIRONMENT` | Yes | `development` or `production` |
 | `POSTGRES_URL` | Yes | PostgreSQL connection string |
-| `WEBHOST` | Yes | Frontend origin (e.g. `https://your-app.vercel.app`) |
-| `API_KEY` | Yes | Shared API key for authentication |
-| `UNLOCK_KEY` | Recommended | Secondary auth key |
-| `UPSTASH_REDIS_REST_URL` | Recommended | Upstash Redis REST endpoint |
-| `UPSTASH_REDIS_TOKEN` | Recommended | Upstash Redis auth token |
+| `WEBHOST` | Recommended | Frontend origin for CORS |
+| `API_KEY` | Recommended | Shared API key for authentication |
+| `UNLOCK_KEY` | Optional | Secondary auth key |
+| `UPSTASH_REDIS_REST_URL` | Optional | Upstash Redis REST endpoint |
+| `UPSTASH_REDIS_TOKEN` | Optional | Upstash Redis auth token |
 | `ALLOWED_ORIGINS` | Optional | Comma-separated additional CORS origins |
 | `RATE_LIMIT_PER_MINUTE` | Optional | Max requests per IP per minute (default: 60) |
-
-> Do **not** set `PORT` — Railway assigns it automatically.
 
 ---
 
