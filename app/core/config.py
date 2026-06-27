@@ -17,7 +17,7 @@ class Settings:
     @property
     def cors_origins(self) -> list[str]:
         if not self.is_production:
-            return ["*"]
+            return ["*", "http://localhost:5173"]
         origins = []
         for val in [self.WEBHOST, *self.ALLOWED_ORIGINS.split(",")]:
             val = val.strip()
