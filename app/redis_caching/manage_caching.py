@@ -1,15 +1,15 @@
-from app.redis_caching.redis_connection import get_redis_client
+from upstash_redis import Redis
 import json
+from app.core.config import settings
 
 
 async def manage_caching(key: str, ttl: int, fetch_fn):
-    """
-    Check cache first; on miss, call fetch_fn (an async callable),
-    cache the result, and return it.
-    """
+
     try:
-        client = get_redis_client()
-        cached = await client.get(key)
+        redis = Redis(
+            url=settings.UPSTASH_REDIS_REST_URL, token=settings.UPSTASH_REDIS_TOKEN
+        )
+        cached = redis.get(key)
         if cached:
             return json.loads(cached)
     except Exception:
@@ -22,8 +22,10 @@ async def manage_caching(key: str, ttl: int, fetch_fn):
         data = fetch_fn
 
     try:
-        client = get_redis_client()
-        await client.setex(key, ttl, json.dumps(data, default=str))
+        redis = Redis(
+            url=settings.UPSTASH_REDIS_REST_URL, token=settings.UPSTASH_REDIS_TOKEN
+        )
+        redis.setex(key, ttl, json.dumps(data, default=str))
     except Exception:
         pass
 
@@ -33,8 +35,10 @@ async def manage_caching(key: str, ttl: int, fetch_fn):
 async def invalidate_cache(pattern: str):
     """Delete cache keys matching a pattern after mutations."""
     try:
-        client = get_redis_client()
-        async for key in client.scan_iter(match=pattern):
-            await client.delete(key)
+        redis = Redis(
+            url=settings.UPSTASH_REDIS_REST_URL, token=settings.UPSTASH_REDIS_TOKEN
+        )
+        for key in redis.scan(match=pattern):
+            redis.delete(key)
     except Exception:
         pass

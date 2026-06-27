@@ -32,11 +32,8 @@ class Settings:
 
     POSTGRES_URL: str = os.getenv("POSTGRES_URL", "")
 
-    REDIS_CLIENT_URL: str = os.getenv("REDIS_CLIENT_URL", "localhost")
-    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
-    REDIS_DECODE_RESPONSES: bool = (
-        os.getenv("REDIS_DECODE_RESPONSES", "True").lower() == "true"
-    )
+    UPSTASH_REDIS_REST_URL: str = os.getenv("UPSTASH_REDIS_REST_URL", "")
+    UPSTASH_REDIS_TOKEN: str = os.getenv("UPSTASH_REDIS_TOKEN", "")
 
     # Auth
     API_KEY: str = os.getenv("API_KEY", "")
