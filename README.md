@@ -1,83 +1,271 @@
 # PostgreSQL Query Service
 
-This service performs common DML operations in PostgreSQL
-using custom query builders which interact with your database and return
-desired data.
+<div align="center">
 
-## Use
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white">
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white">
+</picture>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white">
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white">
+</picture>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">
+  <img alt="Redis" src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">
+</picture>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+</picture>
 
-1. Query Builders are called inside routes directly to avoid deeply passing connection properties
-2. Routes include:
+**A production-ready query service for PostgreSQL with built-in caching, rate limiting, observability, and security layers.**
 
-- connection verification
-- joiners
-- mutators
-- general select statements
-- specific select statements
+</div>
 
-3. Test/verify that you are rightly connected to your postgresql network and run **docker compose up --build -d**
-4. Read fuller API documentation and test through Swagger UI docs by visiting http://localhost:your-port/docs
-5. Apply necessary request body for each route
-6. Refer to .env.example file to see variables you may need to run this application
-7. Run locally on terminal: uvicorn app.main:app --port 'your-port' --reload
+---
 
-## Connection Verification
+## Architecture
 
-This tests connection to your PostgreSQL server and returns a lightweight test query result. How do you connect? It's
-simple: plug in your PostgreSQL connection string here if you are connecting from a cloud service:
-
-```code
-def get_connection():
-    conn = psycopg2.connect(os.getenv("POSTGRES_URL"))
-    conn.autocommit = True
-    return conn
+```
+                          ┌─────────────────────────────────────────┐
+                          │           Client Applications           │
+                          │    React Frontend  ·  Swagger UI        │
+                          └──────────────┬──────────────────────────┘
+                                         │
+                                    X-API-Key
+                                   X-Unlock-Key
+                                         │
+                          ┌──────────────▼──────────────────────────┐
+                          │          CORS Middleware                 │
+                          │  Environment-aware origin selection      │
+                          │  dev: ["*"]  ·  prod: explicit origins  │
+                          └──────────────┬──────────────────────────┘
+                                         │
+                          ┌──────────────▼──────────────────────────┐
+                          │        Rate Limiter Middleware           │
+                          │     Per-IP sliding window (60s)         │
+                          └──────────────┬──────────────────────────┘
+                                         │
+                          ┌──────────────▼──────────────────────────┐
+                          │      Request Context Middleware          │
+                          │   Captures source IP, endpoint, dest    │
+                          └──────────────┬──────────────────────────┘
+                                         │
+                 ┌───────────────────────┬┴──────────────────────────┐
+                 │                       │                           │
+        ┌────────▼────────┐   ┌──────────▼──────────┐   ┌───────────▼──────────┐
+        │   Query Routes  │   │  Mutation Routes    │   │  Observability       │
+        │  SELECT · JOIN  │   │  INSERT · UPDATE    │   │  GET /GetLogs        │
+        │  WHERE · GROUP  │   │  DELETE · DDL       │   │  GET /GetLogStats    │
+        └────────┬────────┘   └──────────┬──────────┘   └───────────┬──────────┘
+                 │                       │                           │
+        ┌────────▼────────┐   ┌──────────▼──────────┐               │
+        │  SQLi Validator │   │  Cache Invalidation │               │
+        │  Parameterized  │   │   Pattern-based     │               │
+        └────────┬────────┘   └──────────┬──────────┘               │
+                 │                       │                           │
+                 └───────────┬───────────┘                           │
+                             │                                       │
+                 ┌───────────▼───────────┐              ┌────────────▼───────────┐
+                 │    Request Executor   │              │   Observability Table  │
+                 │  Connection pooling   │──────log────▶│   observability_logs   │
+                 │  Error classification │              │   (auto-created)       │
+                 └───────────┬───────────┘              └────────────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+     ┌────────▼──────┐ ┌────▼─────┐ ┌──────▼──────┐
+     │  PostgreSQL   │ │  Upstash │ │   Loguru    │
+     │  (psycopg2)   │ │  Redis   │ │  Console    │
+     │  Cloud / Local│ │  Cache   │ │  Logging    │
+     └───────────────┘ └──────────┘ └─────────────┘
 ```
 
-For every database operation you would then consume the connection's cursor. For example:
+---
 
-```code
-cursor = get_connection().cursor()
-cursor.execute(my_parameterized_query_template, variables)
-result = cursor.fetchone()
+## Features
+
+### Security
+
+| Layer | Description |
+|-------|-------------|
+| **API Key Auth** | Header-based authentication via `X-API-Key`. Requests without a valid key are rejected with `401`. When no key is configured, auth is disabled (dev mode). |
+| **Unlock Key** | Secondary `X-Unlock-Key` header for additional access control on sensitive routes. |
+| **SQLi Prevention** | Every route runs input through regex-based SQLi pattern detection before query execution. All queries use `psycopg2.sql` for parameterized identifier and value binding. |
+| **Rate Limiting** | Per-IP sliding window rate limiter (configurable via `RATE_LIMIT_PER_MINUTE`). Excess requests receive `429 Too Many Requests`. |
+
+### Performance
+
+| Layer | Description |
+|-------|-------------|
+| **Redis Caching** | Query results are cached in Upstash Redis with configurable TTL (default 1200s). Cache misses execute the query and store the result. The app gracefully degrades if Redis is unavailable. |
+| **Cache Invalidation** | Mutations (`INSERT`, `UPDATE`, `DELETE`) automatically invalidate related cache keys using pattern-based `SCAN` + `DELETE`. |
+| **Connection Pooling** | `psycopg2.pool.ThreadedConnectionPool` with configurable `minconn`/`maxconn`. Connections are reused across requests. |
+| **Multi-stage Docker** | Builder stage compiles wheels, runtime stage uses `python:3.12-slim` with only runtime dependencies. `.dockerignore` excludes `venv/`, `.git/`, `__pycache__/`. |
+
+### Observability
+
+| Layer | Description |
+|-------|-------------|
+| **Event Logging** | Every request outcome (success, error, sql_error) is logged to the `observability_logs` table with HTTP status, endpoint, source/destination IPs, message, and timestamp. |
+| **Log Query API** | `GET /GetLogs` — server-side pagination, sorting, and filtering by log type, endpoint, HTTP status, and message search. |
+| **Aggregated Stats** | `GET /GetLogStats` — hourly bucketed counts by log type, powering the frontend's time-series charts. |
+| **Console Logging** | Loguru writes to stdout/stderr alongside database persistence. |
+
+### Observability Table Schema
+
+```sql
+CREATE TABLE IF NOT EXISTS observability_logs (
+    id             SERIAL PRIMARY KEY,
+    http_status    INTEGER NOT NULL,
+    log_type       VARCHAR(20) NOT NULL,    -- success, error, sql_error, info
+    endpoint       VARCHAR(255) NOT NULL,
+    source_ip      VARCHAR(45),
+    destination_ip VARCHAR(45),
+    message        TEXT,
+    created_at     TIMESTAMP DEFAULT now()
+);
 ```
 
-In alternative, you may provide database connection parameters this way if you have those credentials available:
+### Environment-Aware Configuration
 
-```code
-def get_connection():
-    conn = psycopg2.connect(os.getenv(dbname=name, password=password, host=host, port=port ))
-    conn.autocommit = True
-    return conn
+```
+┌──────────────────────────────────────────────────────────┐
+│                    ENVIRONMENT check                     │
+│                                                          │
+│   ┌─────────────────┐         ┌────────────────────┐    │
+│   │   development   │         │    production       │    │
+│   │                 │         │                     │    │
+│   │  CORS: ["*"]    │         │  CORS: [WEBHOST,    │    │
+│   │  All origins    │         │    ALLOWED_ORIGINS]  │    │
+│   │  allowed        │         │  Explicit origins   │    │
+│   │                 │         │  only               │    │
+│   └─────────────────┘         └────────────────────┘    │
+│                                                          │
+│   Falls back to development when ENVIRONMENT is unset    │
+└──────────────────────────────────────────────────────────┘
 ```
 
-## Joiners
+---
 
-This includes queries for inner, right, left, and full joins. There is also a query template for checking if sub queries exist or not.
+## Quick Start
 
-## Mutators
+### Local Development
 
-This set of queries lets you run various create, delete, and update statements. While creating new tables, make sure to include
-data types and character limits for each column. These are to be provided as comma separated strings in the request body.
+```bash
+# 1. Clone and install
+git clone <repo-url> && cd postgresql-query-service
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
 
-## General Select Statements
+# 2. Configure environment
+cp .env.example .env
+# Edit .env with your POSTGRES_URL, API_KEY, etc.
 
-This set of queries help you run various general select statements
+# 3. Run
+python app/run.py
+# → http://localhost:8000/docs
+```
 
-## Specific Select Statements
+### Docker
 
-This allows you query tables to extract information for specific columns. With a crontab set - powered by Celery, you can schedule query downloads as CSV/Excel files fired to selected email addresses. It is up to you
+```bash
+docker compose up --build
+# → Backend on http://localhost:8000
+# → PostgreSQL on localhost:5432
+```
 
-## API Illustrations & Examples
+### Production (Railway)
+
+Set these environment variables in your Railway dashboard:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ENVIRONMENT` | Yes | Set to `production` |
+| `POSTGRES_URL` | Yes | PostgreSQL connection string |
+| `WEBHOST` | Yes | Frontend origin (e.g. `https://your-app.vercel.app`) |
+| `API_KEY` | Yes | Shared API key for authentication |
+| `UNLOCK_KEY` | Recommended | Secondary auth key |
+| `UPSTASH_REDIS_REST_URL` | Recommended | Upstash Redis REST endpoint |
+| `UPSTASH_REDIS_TOKEN` | Recommended | Upstash Redis auth token |
+| `ALLOWED_ORIGINS` | Optional | Comma-separated additional CORS origins |
+| `RATE_LIMIT_PER_MINUTE` | Optional | Max requests per IP per minute (default: 60) |
+
+> Do **not** set `PORT` — Railway assigns it automatically.
+
+---
+
+## Request Flow
+
+```
+Client Request
+    │
+    ▼
+┌─────────────┐   No     ┌──────────────┐
+│  Valid       │────────▶ │  401         │
+│  API Key?   │          │  Unauthorized │
+└──────┬──────┘          └──────────────┘
+       │ Yes
+       ▼
+┌─────────────┐   Yes    ┌──────────────┐
+│  Rate limit │────────▶ │  429         │
+│  exceeded?  │          │  Too Many    │
+└──────┬──────┘          └──────────────┘
+       │ No
+       ▼
+┌─────────────┐   Yes    ┌──────────────┐
+│  SQLi       │────────▶ │  422         │
+│  detected?  │          │  Rejected    │
+└──────┬──────┘          └──────────────┘
+       │ No
+       ▼
+┌─────────────┐   Hit    ┌──────────────┐
+│  Redis      │────────▶ │  Return      │
+│  cache?     │          │  cached data │
+└──────┬──────┘          └──────────────┘
+       │ Miss
+       ▼
+┌─────────────┐          ┌──────────────┐
+│  Execute    │────────▶ │  Cache +     │
+│  query      │          │  return data │
+└──────┬──────┘          └──────────────┘
+       │
+       ▼
+  Log to observability_logs
+```
+
+---
+
+## API Reference
+
+### Connection
+
+<details>
+<summary><strong>POST /Connection</strong></summary>
+
+Verifies database connectivity. Returns a lightweight test query result.
+
+**Response:**
+```json
+{
+  "status": "OK",
+  "message": "Connection established.",
+  "test_query_result": [1]
+}
+```
+
+</details>
+
+### Select Queries
 
 <details>
 <summary><strong>POST /GetAll</strong></summary>
 
-<p>Gets all rows in a table based on table name</p>
+Returns all rows from a table. Results are cached for 20 minutes.
 
 ```json
-{
-  "table": "example_string"
-}
+{ "table": "users" }
 ```
 
 </details>
@@ -85,28 +273,10 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAllOrderBy</strong></summary>
 
-<p>Gets all rows in a table based on table name and orders by a certain column</p>
+Returns all rows ordered by a column.
 
 ```json
-{
-  "table": "example_string",
-  "order": "example_string"
-}
-```
-
-</details>
-
-<details>
-<summary><strong>POST /GetAllLimitAndOffset</strong></summary>
-
-<p>Gets all rows in a table based on table name and sets a limit and offset</p>
-
-```json
-{
-  "table": "string",
-  "limit": 123,
-  "offset": 123
-}
+{ "table": "users", "order": "created_at" }
 ```
 
 </details>
@@ -114,13 +284,21 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAllWithLimit</strong></summary>
 
-<p>Gets all rows in a table based on table name with specified limit.</p>
+Returns rows with a limit.
 
 ```json
-{
-  "table": "string",
-  "limit": 123
-}
+{ "table": "users", "limit": 50 }
+```
+
+</details>
+
+<details>
+<summary><strong>POST /GetAllWithLimitAndOffset</strong></summary>
+
+Returns rows with limit and offset for pagination.
+
+```json
+{ "table": "users", "limit": 25, "offset": 50 }
 ```
 
 </details>
@@ -128,31 +306,21 @@ This allows you query tables to extract information for specific columns. With a
 <details>
 <summary><strong>POST /GetAllWhere</strong></summary>
 
-<p>Gets all rows in a table based on table name and columns that match the value of the WHERE clause. 
-Conditions are parameters plugged into to query's WHERE clauses.
-</p>
+Returns rows matching WHERE conditions. Conditions use `column operator value` syntax.
 
 ```json
-{
-  "table": "string",
-  "conditions": ["example_string"]
-}
+{ "table": "users", "conditions": ["age >= 18", "status = active"] }
 ```
 
 </details>
 
 <details>
-<summary><strong>POST /GetAllWhereOrderBy</strong></summary>
+<summary><strong>POST /GetAllWhereAndOrderBy</strong></summary>
 
-<p>Gets all rows in a table based on table name and columns that match the value of the WHERE clause. 
-Conditions are parameters plugged into to query's WHERE clauses. Additionally, you could order by specified column.
-</p>
+WHERE conditions with ordering.
 
 ```json
-{
-  "table": "string",
-  "order": "example_string"
-}
+{ "table": "users", "conditions": ["status = active"], "order": "name" }
 ```
 
 </details>
@@ -160,171 +328,165 @@ Conditions are parameters plugged into to query's WHERE clauses. Additionally, y
 <details>
 <summary><strong>POST /GetAllBetween</strong></summary>
 
-<p>Gets all rows in a table and specifies starting and end rows where result must be produced from.
-</p>
+Returns rows where a column value falls between start and end.
 
 ```json
-{
-  "table": "string",
-  "column": "example_string",
-  "start": "example_string",
-  "end": "example_string"
-}
+{ "table": "orders", "column": "created_at", "start": "2024-01-01", "end": "2024-12-31" }
 ```
 
 </details>
 
 <details>
 <summary><strong>POST /GetAllWhereMatches</strong></summary>
-<p>Gets all rows in a table based on table name and where column value matches specific wild card. Wild cards could be in from of "%A%" (contains 'A'), "en%" (starts with 'en'), and what have you:
 
-</p>
+Returns rows matching a LIKE pattern (`%` wildcards).
 
 ```json
-{
-  "table": "string",
-  "column": "example_string",
-  "wild_card": "example"
-}
+{ "table": "users", "column": "name", "wild_card": "%john%" }
 ```
 
 </details>
 
 <details>
 <summary><strong>POST /GetAllWhereIn</strong></summary>
-<p>Gets all data from based on WHERE search parameters could be found in column.</p>
+
+Returns rows where column value is IN a list.
 
 ```json
-{
-  "column": "example_string",
-  "search_parameters": ["example_string"]
-}
+{ "table": "users", "column": "status", "search_parameters": ["active", "pending"] }
 ```
 
 </details>
 
 <details>
 <summary><strong>POST /GetAllWhereAndCount</strong></summary>
-<p>Gets data from based on WHERE clauses from two columns and counts matching query.</p>
+
+Counts rows matching a condition.
+
+```json
+{ "table": "orders", "primary_column": "id", "secondary_column": "status", "search_parameter": "shipped" }
+```
+
+</details>
+
+<details>
+<summary><strong>POST /GetAllWhereAverage</strong></summary>
+
+Returns the average of a numeric column.
+
+```json
+{ "table": "orders", "column": "total", "search_parameters": ["shipped", "delivered"] }
+```
+
+</details>
+
+<details>
+<summary><strong>POST /GetAllGroupBy</strong></summary>
+
+Groups by a column and counts.
+
+```json
+{ "table": "orders", "primary_column": "id", "secondary_column": "status" }
+```
+
+</details>
+
+### Column-Specific Queries
+
+<details>
+<summary><strong>POST /GetByColumns</strong></summary>
+
+Select specific columns only.
+
+```json
+{ "table": "users", "columns": ["name", "email"] }
+```
+
+</details>
+
+<details>
+<summary><strong>POST /GetByColumnsAndOrderBy</strong></summary>
+
+Select specific columns with ordering.
+
+```json
+{ "table": "users", "columns": ["name", "email"], "order": "name" }
+```
+
+</details>
+
+<details>
+<summary><strong>POST /GetByColumnsAndLimit</strong></summary>
+
+Select specific columns with a limit.
+
+```json
+{ "table": "users", "columns": ["name", "email"], "limit": 100 }
+```
+
+</details>
+
+### Joins
+
+<details>
+<summary><strong>POST /GetTableJoin</strong></summary>
+
+Join two tables on a common key. Supports `INNER`, `LEFT`, `RIGHT`, `FULL` join types via `?join_type=` query param.
 
 ```json
 {
-  "primary_column": "example_string",
-  "secondary_column": "example_string",
-  "search_parameter": "example"
+  "columns": ["a.name", "b.email"],
+  "primary_table": "users",
+  "secondary_table": "contacts",
+  "common_key": "user_id"
 }
 ```
 
 </details>
 
-<details> <summary><strong>POST /GetAllWhereAverage</strong></summary> <p>Gets aggregated average for a column with optional search parameters (search_parameters may be an array, a single string, or an integer). Example shows an array.</p>
+<details>
+<summary><strong>POST /SubQueryExists</strong></summary>
+
+Subquery with EXISTS/NOT EXISTS via `?operator=` query param.
 
 ```json
 {
-    "table": "string",
-    "column": "string",
-    "search_parameters": ["string"] or "string" or 123
+  "primary_column": "id",
+  "primary_table": "users",
+  "sub_query_select": "user_id",
+  "sub_query_table": "orders",
+  "sub_query_where_column": "status",
+  "sub_query_where_value": "active"
 }
 ```
 
 </details>
 
- <details> <summary><strong>POST /GetAllGroupBy</strong></summary> <p>Groups results by primary and secondary columns for a given table.</p>
+### Mutations
+
+<details>
+<summary><strong>POST /CreateOne</strong></summary>
+
+Insert a single row. Invalidates related cache.
 
 ```json
-{
-  "table": "example_string",
-  "primary_column": "example_string",
-  "secondary_column": "example_string"
-}
+{ "table": "users", "columns": ["name", "email"], "values": ["Jane", "jane@example.com"] }
 ```
 
 </details>
 
- <details> <summary><strong>POST /GetByColumns</strong></summary> <p>Selects only the provided columns from a table.</p>
+<details>
+<summary><strong>POST /CreateMany</strong></summary>
 
-```json
-{
-  "table": "example_string",
-  "columns": ["example_string"]
-}
-```
-
-</details>
-
-<details> <summary><strong>POST /GetByColumnsAndOrder</strong></summary> <p>Selects given columns from a table and orders the result.</p>
-
-```json
-{
-  "table": "example_string",
-  "columns": ["example_string"],
-  "order": "created_at DESC"
-}
-```
-
-</details>
-
- <details> <summary><strong>POST /GetByColumnsAndLimit</strong></summary> <p>Selects specified columns from a table and limits the number of results.</p>
-
-```json
-{
-  "table": "example_string",
-  "columns": ["example_string"],
-  "limit": 100
-}
-```
-
-</details>
-
- <details> <summary><strong>POST /GetTableJoin</strong></summary> <p>Join two tables on a common key and return the specified columns.</p>
-
-```json
-{
-  "columns": ["example_string"],
-  "primary_table": "example_string",
-  "secondary_table": "example_string",
-  "common_key": "example_string"
-}
-```
-
-</details>
-
-<details> <summary><strong>POST /SubQueryExists</strong></summary> <p>Runs a subquery check using EXISTS and returns rows where the subquery condition is satisfied.</p>
-
-```json
-{
-  "primary_column": "example_string",
-  "primary_table": "example_string",
-  "sub_query_select": "example_string",
-  "sub_query_table": "example_string",
-  "sub_query_where_column": "example_string",
-  "sub_query_where_value": "example_string"
-}
-```
-
-</details>
-
-<details> <summary><strong>POST /CreateRow</strong></summary> <p>Inserts a single row into a table. `columns` and `values` must align by index.</p>
-
-```json
-{
-  "columns": ["example_string"],
-  "table": "example_string",
-  "values": ["example"]
-}
-```
-
-</details>
-
-<details> <summary><strong>POST /CreateMany</strong></summary> <p>Inserts multiple rows into a table. Each entry in `values` is a row (list) matching `columns`.</p>
+Insert multiple rows in one operation.
 
 ```json
 {
   "table": "users",
-  "columns": ["name", "email", "age"],
+  "columns": ["name", "email"],
   "values": [
-    ["Jane Doe", "jane@example.com", 29],
-    ["John Smith", "john@example.com", 35]
+    ["Jane", "jane@example.com"],
+    ["John", "john@example.com"]
   ]
 }
 ```
@@ -332,71 +494,26 @@ Conditions are parameters plugged into to query's WHERE clauses. Additionally, y
 </details>
 
 <details>
-<summary><strong>POST /DeleteRow</strong></summary>
+<summary><strong>POST /UpdateOne</strong></summary>
+
+Update a single row.
 
 ```json
 {
-  "table": "example_string",
-  "id": "example",
-  "primary_column": "example_string"
-}
-```
-
-</details>
-
-<details> <summary><strong>POST /DeleteRow</strong></summary> <p>Deletes a single row identified by `id` and `primary_column` from `table`.</p>
-
-```json
-{
-  {
   "table": "users",
-  "id": 123,
-}
+  "secondary_column": "name",
+  "set_value": "Jane Doe",
+  "primary_column": "id",
+  "where_value": "1"
 }
 ```
 
 </details>
 
 <details>
-<summary><strong>POST /DeleteByParams</strong></summary>
+<summary><strong>POST /UpdateMany</strong></summary>
 
-```json
-{
-  "conditions": ["example_string"]
-}
-```
-
-</details>
-
- <details> <summary><strong>POST /DeleteByParams</strong></summary> <p>Deletes rows matching the provided conditions. Conditions should be provided in the format expected by your query builder (e.g. `"status = 'inactive'"`).</p>
-
-```json
-{
-  "table": "example_string",
-  "primary_column": "example_string",
-  "set_value": "example_string",
-  "secondary_column": "example_string",
-  "where_value": "example_string"
-}
-```
-
-</details>
-
-<details> <summary><strong>POST /UpdateRow</strong></summary> <p>Updates a single row. Use `primary_column` when applicable; `set_value` is applied to `secondary_column` where `where_value` matches.</p>
-
-```json
-{
-  "table": "example_string",
-  "set_columns": ["example_string"],
-  "set_values": ["example"],
-  "where_value": "example",
-  "where_column": "example_string"
-}
-```
-
-</details>
-
-<details> <summary><strong>POST /UpdateMany</strong></summary> <p>Updates many rows using parallel `set_columns` / `set_values`. `where_column` and `where_value` determine rows to update.</p>
+Update multiple columns for rows matching a condition.
 
 ```json
 {
@@ -410,11 +527,38 @@ Conditions are parameters plugged into to query's WHERE clauses. Additionally, y
 
 </details>
 
-<details> <summary><strong>POST /CreateTable</strong></summary> <p>Creates a new table with column definitions supplied as comma-separated property strings.</p>
+<details>
+<summary><strong>POST /DeleteById</strong></summary>
+
+Delete a single row by ID.
+
+```json
+{ "table": "users", "primary_column": "id", "id": 42 }
+```
+
+</details>
+
+<details>
+<summary><strong>POST /DeleteMany</strong></summary>
+
+Delete multiple rows by a list of IDs.
+
+```json
+{ "table": "users", "primary_column": "id", "primary_key": [1, 2, 3] }
+```
+
+</details>
+
+### DDL
+
+<details>
+<summary><strong>POST /CreateTable</strong></summary>
+
+Create a new table with column definitions.
 
 ```json
 {
-  "table_name": "new_table",
+  "table_name": "analytics",
   "column_names_with_properties": [
     "id SERIAL PRIMARY KEY",
     "name VARCHAR(255) NOT NULL",
@@ -426,105 +570,92 @@ Conditions are parameters plugged into to query's WHERE clauses. Additionally, y
 
 </details>
 
-<details> <summary><strong>POST /QueryDownload</strong></summary> <p>Run a query and email the resulting CSV/Excel file to recipients. `recipient` and `role` accept a string or an array of strings.</p>
+### Observability
+
+<details>
+<summary><strong>GET /GetLogs</strong></summary>
+
+Query event logs with server-side pagination, sorting, and filtering.
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `limit` | int | 25 | Page size |
+| `offset` | int | 0 | Pagination offset |
+| `log_type` | string | | Filter: `success`, `error`, `sql_error`, `info` |
+| `endpoint` | string | | Filter by endpoint (partial match) |
+| `http_status` | int | | Filter by HTTP status code |
+| `search` | string | | Search message text |
+| `sort_by` | string | `created_at` | Sort column |
+| `sort_order` | string | `desc` | `asc` or `desc` |
+
+</details>
+
+<details>
+<summary><strong>GET /GetLogStats</strong></summary>
+
+Aggregated hourly counts by log type for time-series charts.
+
+**Response:**
+```json
+{
+  "result": [
+    { "time_bucket": "2024-06-27T10:00:00", "log_type": "success", "count": 42 },
+    { "time_bucket": "2024-06-27T10:00:00", "log_type": "error", "count": 3 }
+  ]
+}
+```
+
+</details>
+
+### Scheduled Reports
+
+<details>
+<summary><strong>POST /QueryDownload</strong></summary>
+
+Execute a query and email the results as a CSV/Excel file. Powered by Celery.
 
 ```json
 {
-  "query": "SELECT id, name, email FROM users WHERE created_at >= '2024-01-01';",
-  "file_name": "users_jan_2024.csv",
+  "query": "SELECT id, name, email FROM users WHERE created_at >= '2024-01-01'",
+  "file_name": "users_export.xlsx",
   "recipient": ["ops@example.com"],
   "sender": "no-reply@example.com",
-  "password": "example_password",
+  "password": "smtp_password",
   "role": ["admin"],
-  "subject": "Monthly Users Export",
-  "message": "Attached is the users export for January 2024.",
+  "subject": "Monthly Export",
+  "message": "Attached is the users export.",
   "email_server": "smtp.example.com"
 }
 ```
 
 </details>
 
-<details>
-<summary><strong>SQLi Considerations</strong></summary>
+---
 
-<p>Query Builders might be susceptible to SQL injections, and to combat this, an SQLi validator is
-called at the top level of every route to track if failing the rules of parameterized queries. Normally,
-you should try to prevent using various dangerous PostgreSQL statements which are set aside to trigger 
-query failure from the onset within any given route. This error is sent to either your logger or HTTP Response.
-</p>
+## Security
 
-<p>1. Define SQLi patterns you would like to catch: </p>
+### SQLi Prevention
 
-```code
-SQLI_PATTERNS = [
-    r"\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|EXEC|--|#|;)\b",
-    r"' OR '1'='1",
-    r"(?i)(\bor\b|\band\b)\s+\d+=\d+",
-]
+All user input passes through a two-layer defense:
 
-```
+1. **Regex pattern detection** — catches common injection patterns (`UNION`, `DROP`, `--`, `' OR '1'='1'`, etc.) before the query is built
+2. **Parameterized queries** — all values are bound via `psycopg2.sql.SQL` / `sql.Identifier` / `sql.Placeholder`. Table and column names are validated against `^[a-zA-Z_][a-zA-Z0-9_]*$`
 
-<p>2. Validation issue template which sends log or response with validation feedback: </p>
+### Error Handling
 
-```code
-def get_validation_log(key: str, issues: str | list[str]):
-    return {
-            "timestamp": datetime.datetime.now().__str__(),
-            "validation_warning": f"Validation failed! Unsupported content. Attempted SQLi attack using parameter: {key}.",
-            "rejected_value": issues,
-            "status": True
-            }
+Errors are classified by type and mapped to appropriate HTTP responses:
 
-```
+| psycopg2 Error | HTTP Status | Log Type |
+|---------------|-------------|----------|
+| `SyntaxError` | 422 | `sql_error` |
+| `ConnectionFailure` | 503 | `error` |
+| `UndefinedTable` | 404 | `sql_error` |
+| `DuplicateTable` | 409 | `sql_error` |
+| `UniqueViolation` | 409 | `sql_error` |
+| `InternalError` | 500 | `error` |
 
-<p>Returns true is query template has potential SQLi: </p>
+---
 
-```code
-def is_potential_sqli(param: str) -> bool:
-    for pattern in SQLI_PATTERNS:
-        if re.search(pattern, param, flags=re.IGNORECASE):
-            return True
-    return False
-```
+## License
 
-<p>Performs full validation by for single value parameters of list of parameters: </p>
-
-```code
-async def validate_params_against_sqli(params: dict):
-    try:
-        issues = []
-        for key, value in params.items():
-           if isinstance(value, str) and is_potential_sqli(value):
-              await handle_logging("error", get_validation_log(key, value))
-           elif isinstance(value, list) and len(value) != 0:
-               for element in value:
-                   if(is_potential_sqli(element)):
-                       issues.append(element)
-                       await handle_logging("error", get_validation_log(key, value))
-
-        return issues
-
-    except errors.SyntaxError:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Validation Error Occurred While Processing Request")
-```
-
-</details>
-
-<details>
-<summary><strong>Error Handling Considerations</strong></summary>
-
-<p>Error is handled during validations and requests considering the following types of errors
-from psycopg2: </p>
-
-- Syntax error
-- Connection error
-- Undefined table
-- Duplicate table
-- Unique Violation
-- Internal error
-
-<p>Two-pronged approaches to communicating error involve: </p>
-
-- Logging them via loguru, from where data could be further extracted to other observability services
-- Sending appropriate HTTP response status and accompanying message.
-</p>
+[MIT](LICENSE)
