@@ -37,7 +37,13 @@ app.add_middleware(RateLimiterMiddleware)
 _origins = settings.cors_origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_origins or ["*"],
+    allow_origins=[
+        "*",
+        "http://localhost:5173",
+        settings.WEBHOST,
+        settings.POSTGRES_URL,
+        settings.CELERY_BROKER_URL,
+    ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
