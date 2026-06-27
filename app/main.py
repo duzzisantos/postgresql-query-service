@@ -49,6 +49,9 @@ async def root():
     return {"message": "enter /docs to view API documentation"}
 
 
+##Routes
+
+
 app.include_router(log_router)
 app.include_router(connection_verify)
 app.include_router(joiner_router)
