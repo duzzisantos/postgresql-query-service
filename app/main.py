@@ -27,7 +27,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         source_ip = request.client.host if request.client else ""
         endpoint = request.url.path
-        dest_ip = settings.LOCALHOST
+        dest_ip = settings.WEBHOST
         set_request_context(source_ip, endpoint, dest_ip)
         return await call_next(request)
 

@@ -5,16 +5,21 @@ load_dotenv()
 
 
 class Settings:
-    LOCALHOST: str = os.getenv("LOCALHOST", "")
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     PORT: int = int(os.getenv("PORT", "8000"))
     WEBHOST: str = os.getenv("WEBHOST", "")
-
     ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")
 
     @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() == "production"
+
+    @property
     def cors_origins(self) -> list[str]:
+        if not self.is_production:
+            return ["*"]
         origins = []
-        for val in [self.LOCALHOST, self.WEBHOST, *self.ALLOWED_ORIGINS.split(",")]:
+        for val in [self.WEBHOST, *self.ALLOWED_ORIGINS.split(",")]:
             val = val.strip()
             if not val:
                 continue
@@ -22,7 +27,7 @@ class Settings:
             if not val.startswith("http"):
                 val = f"https://{val}"
             origins.append(val)
-        return origins
+        return origins or ["*"]
 
     POSTGRES_URL: str = os.getenv("POSTGRES_URL", "")
 
