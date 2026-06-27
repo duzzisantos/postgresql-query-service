@@ -39,8 +39,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "*",
-        "http://localhost:5173",
-        settings.WEBHOST,
+        settings.CLIENT_LOCAL_PORT,
+        settings.WEBHOST.rstrip("/"),
         settings.POSTGRES_URL,
         settings.CELERY_BROKER_URL,
     ],

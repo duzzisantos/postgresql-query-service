@@ -8,6 +8,7 @@ class Settings:
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     PORT: int = int(os.getenv("PORT", "8000"))
     WEBHOST: str = os.getenv("WEBHOST", "")
+    CLIENT_LOCAL_PORT: str = os.getenv("CLIENT_LOCAL_PORT", "")
     ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")
 
     @property
@@ -27,7 +28,7 @@ class Settings:
             if not val.startswith("http"):
                 val = f"https://{val}"
             origins.append(val)
-        return origins or ["*"]
+        return origins
 
     POSTGRES_URL: str = os.getenv("POSTGRES_URL", "")
 
