@@ -1,4 +1,18 @@
-.history/
-/database-env
-/path
+# env
 .env
+/database-env
+/venv
+
+# OS
+.DS_Store
+
+# history
+.history/
+
+# cache
+__pycache__/
+*.pyc
+*.pyo
+
+# path
+/path
